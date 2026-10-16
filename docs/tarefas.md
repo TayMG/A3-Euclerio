@@ -9,7 +9,7 @@
 **Resumo:**
 Criar uma API em Python que lista, inspeciona, inicia e encerra processos do sistema. Depois, empacotar essa API em um container Docker com o nome `process-api:latest`.
 
-**Guia completa:** `docs/guia-pessoa-1.md`
+**Guia completa:** `docs/guia-tarefa-1.md`
 
 ---
 
@@ -20,7 +20,7 @@ Criar uma API em Python que lista, inspeciona, inicia e encerra processos do sis
 **Resumo:**
 Criar dois containers Docker: um com Nginx + cron embutido (`nginx-cron:latest`) e outro só com cron (`cron-daemon:latest`). Ambos executam tarefas agendadas.
 
-**Guia completa:** `docs/guia-pessoa-2.md`
+**Guia completa:** `docs/guia-tarefa-2.md`
 
 ---
 
@@ -31,7 +31,7 @@ Criar dois containers Docker: um com Nginx + cron embutido (`nginx-cron:latest`)
 **Resumo:**
 Escrever os YAMLs do Kubernetes, fazer o deploy no Minikube e demonstrar self-healing (recriação automática de Pods) e scaling (aumento automático de réplicas com HPA).
 
-**Guia completa:** `docs/guia-pessoa-3.md`
+**Guia completa:** `docs/guia-tarefa-3.md`
 
 ---
 
@@ -40,6 +40,6 @@ Escrever os YAMLs do Kubernetes, fazer o deploy no Minikube e demonstrar self-he
 **Responsável:** ____________________
 
 **Resumo:**
-Escrever o artigo, montar os slides, criar o README. Cobrar as entregas das outras pessoas.
+Escrever o artigo, montar os slides, criar o README. Cobrar as entregas das outras tarefas.
 
-**Guia completa:** `docs/guia-pessoa-4.md`
+**Guia completa:** `docs/guia-tarefa-4.md`
