@@ -22,21 +22,21 @@ Se algum desses não estiver instalado, peça ajuda no grupo antes de continuar.
 
 ---
 
-## 3. Dependências entre pessoas
+## 3. Dependências entre tarefas
 
 Esta guia tem **duas dependências**:
 
 | Passo | Depende de | O que precisa |
 |-------|-----------|---------------|
-| 5.5 (deploy real) | Pessoa 1 | Imagem `process-api:latest` buildada |
-| 5.5 (deploy real) | Pessoa 2 | Imagens `nginx-cron:latest` e `cron-daemon:latest` buildadas |
+| 5.5 (deploy real) | tarefa 1 | Imagem `process-api:latest` buildada |
+| 5.5 (deploy real) | tarefa 2 | Imagens `nginx-cron:latest` e `cron-daemon:latest` buildadas |
 
 **Importante:** você **não precisa esperar** para começar. Você pode:
 1. Escrever todos os YAMLs (passos 5.1 a 5.4).
 2. Testar com **imagens genéricas** (ex: `nginx:latest`) enquanto as reais não ficam prontas.
 3. Quando as imagens reais chegarem, é só carregar no Minikube e aplicar os YAMLs de novo.
 
-**Avise no grupo** assim que terminar as demonstrações de self-healing e scaling. A Pessoa 4 precisa dos seus resultados para escrever o artigo.
+**Avise no grupo** assim que terminar as demonstrações de self-healing e scaling. A tarefa 4 precisa dos seus resultados para escrever o artigo.
 
 ---
 
@@ -316,7 +316,7 @@ spec:
 
 ### 5.5. Fazer o deploy no Minikube
 
-> ⚠️ **Este passo depende da Pessoa 1 e da Pessoa 2.** Você precisa das imagens `process-api:latest`, `nginx-cron:latest` e `cron-daemon:latest` buildadas.
+> ⚠️ **Este passo depende da pessoa da tarefa 1 e da tarefa 2.** Você precisa das imagens `process-api:latest`, `nginx-cron:latest` e `cron-daemon:latest` buildadas.
 
 **Se as imagens ainda não estiverem prontas**, use imagens genéricas temporariamente para testar os YAMLs:
 - Troque `process-api:latest` por `nginx:latest` no `api-deployment.yaml`.
@@ -429,7 +429,7 @@ Tire prints de:
 5. Réplicas aumentando após scaling
 6. `curl http://$(minikube ip):30080/processes` (API respondendo)
 
-Salve em `docs/evidencias/pessoa-3/`.
+Salve em `docs/evidencias/tarefa-3/`.
 
 ### 5.9. Documentar resultados
 
@@ -441,7 +441,7 @@ Crie uma tabela com os resultados. Exemplo:
 | Tempo de recriação do Pod | — | 15s |
 | Uso de CPU durante carga | 20% | 85% |
 
-Esses dados vão para o artigo (Pessoa 4).
+Esses dados vão para o artigo (tarefa 4).
 
 ### 5.10. Subir para o GitHub
 
@@ -461,7 +461,7 @@ Depois, no GitHub:
 4. Clique em **Create pull request**.
 5. Avise no grupo para alguém revisar.
 
-**Avise a Pessoa 4** que os resultados estão prontos para o artigo.
+**Avise a pessoa da tarefa 4** que os resultados estão prontos para o artigo.
 
 ---
 
@@ -613,7 +613,7 @@ spec:
 Depois de terminar:
 
 1. Avise no grupo que os YAMLs estão prontos e as demonstrações foram feitas.
-2. Envie os prints e vídeos para a Pessoa 4.
-3. Envie a tabela de resultados para a Pessoa 4 (vai para o artigo).
-4. Se a Pessoa 1 ou a Pessoa 2 mudarem as imagens, refaça o deploy.
+2. Envie os prints e vídeos para a pessoa da tarefa 4.
+3. Envie a tabela de resultados para a pessoa da tarefa 4 (vai para o artigo).
+4. Se a tarefa 1 ou a tarefa 2 mudarem as imagens, refaça o deploy.
 5. Guarde os prints para o artigo e os slides.
