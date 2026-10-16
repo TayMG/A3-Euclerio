@@ -1,4 +1,4 @@
-# Guia da tarefa 2 — Containers Nginx e Cron
+# Guia da Tarefa 2 — Containers Nginx e Cron
 
 ---
 
@@ -26,7 +26,7 @@ Se algum desses não estiver instalado, peça ajuda no grupo antes de continuar.
 
 **Esta guia não depende de nenhuma outra tarefa.**
 
-**Mas a pessoa da tarefa 3 depende desta guia:** ela precisa das imagens `nginx-cron:latest` e `cron-daemon:latest` prontas para fazer o deploy no Kubernetes. Por isso, avise no grupo assim que as imagens estiverem buildadas (passo 5.6).
+**Mas a pessoa da Tarefa 3 depende desta guia:** ela precisa das imagens `nginx-cron:latest` e `cron-daemon:latest` prontas para fazer o deploy no Kubernetes. Por isso, avise no grupo assim que as imagens estiverem buildadas (passo 5.6).
 
 ---
 
@@ -45,9 +45,6 @@ Se algum desses não estiver instalado, peça ajuda no grupo antes de continuar.
 **No seu projeto:**
 - **Nginx** é um daemon: servidor web que responde requisições HTTP.
 - **Cron** é um daemon: agendador que executa tarefas em horários definidos.
-
-**Pergunta provável do professor:** "Por que um daemon não tem terminal associado?"
-**Resposta:** Porque ele precisa rodar independente de qualquer sessão de usuário. Se estivesse preso a um terminal, morreria quando o usuário deslogasse.
 
 ### 4.2. O que é Nginx
 
@@ -87,9 +84,6 @@ Containers são projetados para rodar **um processo principal em foreground**. S
 O cron, por padrão, roda em background (daemon). Se você rodar `crond` sem a flag `-f`, ele "solta" o terminal e o container entende que o processo principal terminou → o container morre.
 
 **Solução:** usar `crond -f` (foreground). Assim, o cron fica como processo principal do container e o container não morre.
-
-**Pergunta provável do professor:** "Por que o cron precisa rodar em foreground?"
-**Resposta:** Porque containers rodam um processo principal em foreground. Se o processo termina, o container para. O `crond -f` mantém o cron em foreground para que o container continue rodando.
 
 ### 4.5. O que é um Dockerfile
 
@@ -210,7 +204,7 @@ Se quiser documentar a tarefa separadamente, crie `cron/crontab` com:
 
 ### 5.6. Buildar as imagens
 
-> ⚠️ **A tarefa 3 depende deste passo.** Avise no grupo assim que as imagens estiverem prontas.
+> ⚠️ **A Tarefa 3 depende deste passo.** Avise no grupo assim que as imagens estiverem prontas.
 
 ```bash
 cd ~/projeto-a3/nginx
@@ -374,6 +368,6 @@ CMD ["crond", "-f", "-l", "8"]
 Depois de terminar:
 
 1. Avise no grupo que os containers estão prontos e as imagens `nginx-cron:latest` e `cron-daemon:latest` foram buildadas.
-2. A tarefa 3 vai usar essas imagens no Kubernetes.
-3. Se a tarefa 3 pedir ajustes, atenda e refaça o build.
+2. A Tarefa 3 vai usar essas imagens no Kubernetes.
+3. Se a Tarefa 3 pedir ajustes, atenda e refaça o build.
 4. Guarde os prints para o artigo e os slides.
