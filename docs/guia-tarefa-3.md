@@ -1,4 +1,4 @@
-# Guia da tarefa 3 — Kubernetes (YAMLs + Deploy + Self-healing + Scaling)
+# Guia da Tarefa 3 — Kubernetes (YAMLs + Deploy + Self-healing + Scaling)
 
 ---
 
@@ -28,15 +28,15 @@ Esta guia tem **duas dependências**:
 
 | Passo | Depende de | O que precisa |
 |-------|-----------|---------------|
-| 5.5 (deploy real) | tarefa 1 | Imagem `process-api:latest` buildada |
-| 5.5 (deploy real) | tarefa 2 | Imagens `nginx-cron:latest` e `cron-daemon:latest` buildadas |
+| 5.5 (deploy real) | Tarefa 1 | Imagem `process-api:latest` buildada |
+| 5.5 (deploy real) | Tarefa 2 | Imagens `nginx-cron:latest` e `cron-daemon:latest` buildadas |
 
 **Importante:** você **não precisa esperar** para começar. Você pode:
 1. Escrever todos os YAMLs (passos 5.1 a 5.4).
 2. Testar com **imagens genéricas** (ex: `nginx:latest`) enquanto as reais não ficam prontas.
 3. Quando as imagens reais chegarem, é só carregar no Minikube e aplicar os YAMLs de novo.
 
-**Avise no grupo** assim que terminar as demonstrações de self-healing e scaling. A tarefa 4 precisa dos seus resultados para escrever o artigo.
+**Avise no grupo** assim que terminar as demonstrações de self-healing e scaling. A Tarefa 4 precisa dos seus resultados para escrever o artigo.
 
 ---
 
@@ -71,9 +71,6 @@ Um cluster tem dois tipos de nós:
 | kubelet | Agente que garante que os Pods rodem |
 | kube-proxy | Gerencia rede dos Services |
 | Container Runtime | Executa os containers (containerd) |
-
-**Pergunta provável do professor:** "O que é o etcd?"
-**Resposta:** Banco de dados chave-valor distribuído que armazena todo o estado do cluster.
 
 ### 4.3. Conceitos fundamentais
 
@@ -121,9 +118,6 @@ O Kubernetes tem um **loop de reconciliação**:
 
 **Quem faz isso:** o ReplicaSet controller (parte do kube-controller-manager).
 
-**Pergunta provável do professor:** "Como funciona o self-healing?"
-**Resposta:** O controlador compara o estado desejado com o atual. Se há menos Pods que o desejado, cria novos. Se há mais, remove. Loop contínuo.
-
 ### 4.5. Scaling e HPA
 
 **Escalonamento horizontal:** aumentar/diminuir o número de réplicas (Pods).
@@ -135,9 +129,6 @@ O Kubernetes tem um **loop de reconciliação**:
 - Se cai, reduz.
 
 **Requer o `metrics-server` instalado no cluster** (no Minikube, é um addon).
-
-**Pergunta provável do professor:** "O que é o HPA?"
-**Resposta:** Horizontal Pod Autoscaler. Ajusta automaticamente o número de réplicas com base em métricas como CPU.
 
 ### 4.6. Diferença entre ClusterIP, NodePort e LoadBalancer
 
@@ -316,7 +307,7 @@ spec:
 
 ### 5.5. Fazer o deploy no Minikube
 
-> ⚠️ **Este passo depende da pessoa da tarefa 1 e da tarefa 2.** Você precisa das imagens `process-api:latest`, `nginx-cron:latest` e `cron-daemon:latest` buildadas.
+> ⚠️ **Este passo depende da Tarefa 1 e da Tarefa 2.** Você precisa das imagens `process-api:latest`, `nginx-cron:latest` e `cron-daemon:latest` buildadas.
 
 **Se as imagens ainda não estiverem prontas**, use imagens genéricas temporariamente para testar os YAMLs:
 - Troque `process-api:latest` por `nginx:latest` no `api-deployment.yaml`.
@@ -441,7 +432,7 @@ Crie uma tabela com os resultados. Exemplo:
 | Tempo de recriação do Pod | — | 15s |
 | Uso de CPU durante carga | 20% | 85% |
 
-Esses dados vão para o artigo (tarefa 4).
+Esses dados vão para o artigo (Tarefa 4).
 
 ### 5.10. Subir para o GitHub
 
@@ -461,7 +452,7 @@ Depois, no GitHub:
 4. Clique em **Create pull request**.
 5. Avise no grupo para alguém revisar.
 
-**Avise a pessoa da tarefa 4** que os resultados estão prontos para o artigo.
+**Avise a pessoa da Tarefa 4** que os resultados estão prontos para o artigo.
 
 ---
 
@@ -613,7 +604,7 @@ spec:
 Depois de terminar:
 
 1. Avise no grupo que os YAMLs estão prontos e as demonstrações foram feitas.
-2. Envie os prints e vídeos para a pessoa da tarefa 4.
-3. Envie a tabela de resultados para a pessoa da tarefa 4 (vai para o artigo).
-4. Se a tarefa 1 ou a tarefa 2 mudarem as imagens, refaça o deploy.
+2. Envie os prints e vídeos para a pessoa da Tarefa 4.
+3. Envie a tabela de resultados para a pessoa da Tarefa 4 (vai para o artigo).
+4. Se a Tarefa 1 ou a Tarefa 2 mudarem as imagens, refaça o deploy.
 5. Guarde os prints para o artigo e os slides.
