@@ -135,10 +135,10 @@ projeto-a3/
 ├── docs/                   (Pessoa 4)
 │   ├── interfaces.md
 │   ├── tarefas.md
-│   ├── guia-pessoa-1.md
-│   ├── guia-pessoa-2.md
-│   ├── guia-pessoa-3.md
-│   ├── guia-pessoa-4.md
+│   ├── guia-tarefa-1.md
+│   ├── guia-tarefa-2.md
+│   ├── guia-tarefa-3.md
+│   ├── guia-tarefa-4.md
 │   ├── artigo.md
 │   ├── slides.pdf
 │   └── evidencias/
