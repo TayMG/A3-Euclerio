@@ -10,9 +10,9 @@ As imagens serão construídas com estes nomes **exatos**. Ninguém pode mudar s
 
 | Imagem | Nome completo | Quem constrói | Dockerfile |
 |--------|---------------|---------------|------------|
-| API | `process-api:latest` | Pessoa 1 | `api/Dockerfile` |
-| Nginx + Cron | `nginx-cron:latest` | Pessoa 2 | `nginx/Dockerfile` |
-| Cron separado | `cron-daemon:latest` | Pessoa 2 | `cron/Dockerfile` |
+| API | `process-api:latest` | tarefa 1 | `api/Dockerfile` |
+| Nginx + Cron | `nginx-cron:latest` | tarefa 2 | `nginx/Dockerfile` |
+| Cron separado | `cron-daemon:latest` | tarefa 2 | `cron/Dockerfile` |
 
 **Regra:** todos os YAMLs do Kubernetes devem usar exatamente esses nomes, com `imagePullPolicy: Never`.
 
@@ -115,24 +115,24 @@ http://127.0.0.1:8000/docs
 
 ```
 projeto-a3/
-├── api/                    (Pessoa 1)
+├── api/                    (tarefa 1)
 │   ├── main.py
 │   ├── requirements.txt
 │   └── Dockerfile
-├── nginx/                  (Pessoa 2)
+├── nginx/                  (tarefa 2)
 │   ├── Dockerfile
 │   └── entrypoint.sh
-├── cron/                   (Pessoa 2)
+├── cron/                   (tarefa 2)
 │   ├── Dockerfile
 │   └── crontab
-├── k8s/                    (Pessoa 3)
+├── k8s/                    (tarefa 3)
 │   ├── namespace.yaml
 │   ├── api-deployment.yaml
 │   ├── api-service.yaml
 │   ├── nginx-deployment.yaml
 │   ├── cron-deployment.yaml
 │   └── hpa.yaml
-├── docs/                   (Pessoa 4)
+├── docs/                   (tarefa 4)
 │   ├── interfaces.md
 │   ├── tarefas.md
 │   ├── guia-tarefa-1.md
@@ -142,17 +142,17 @@ projeto-a3/
 │   ├── artigo.md
 │   ├── slides.pdf
 │   └── evidencias/
-│       ├── pessoa-1/
-│       ├── pessoa-2/
-│       ├── pessoa-3/
-│       └── pessoa-4/
+│       ├── tarefa-1/
+│       ├── tarefa-2/
+│       ├── tarefa-3/
+│       └── tarefa-4/
 ├── scripts/                (todos)
 │   ├── build.sh
 │   └── deploy.sh
-└── README.md               (Pessoa 4)
+└── README.md               (tarefa 4)
 ```
 
-**Regra:** cada pessoa só mexe na **sua** pasta. Se precisar mexer na pasta de outro, avisar antes.
+**Regra:** cada tarefa só mexe na **sua** pasta. Se precisar mexer na pasta de outro, avisar antes.
 
 ---
 
@@ -166,10 +166,10 @@ projeto-a3/
 
 | Branch | Responsável |
 |--------|-------------|
-| `feature/api` | Pessoa 1 |
-| `feature/containers` | Pessoa 2 |
-| `feature/k8s` | Pessoa 3 |
-| `docs/artigo` | Pessoa 4 |
+| `feature/api` | tarefa 1 |
+| `feature/containers` | tarefa 2 |
+| `feature/k8s` | tarefa 3 |
+| `docs/artigo` | tarefa 4 |
 
 ### Fluxo
 
@@ -238,32 +238,32 @@ minikube start --driver=docker
 
 ---
 
-## 9. Responsabilidades por Pessoa
+## 9. Responsabilidades por tarefa
 
 > A divisão de tarefas está detalhada em `docs/tarefas.md`.
-> Cada pessoa deve seguir a sua guia (`docs/guia-pessoa-X.md`).
+> Cada tarefa deve seguir a sua guia (`docs/guia-tarefa-X.md`).
 
-### Pessoa 1 — API FastAPI + psutil
+### tarefa 1 — API FastAPI + psutil
 
-- **Guia completa:** `docs/guia-pessoa-1.md`
+- **Guia completa:** `docs/guia-tarefa-1.md`
 - **Entregáveis:** `api/main.py`, `api/requirements.txt`, `api/Dockerfile`, prints da API funcionando
 - **Branch:** `feature/api`
 
-### Pessoa 2 — Containers Nginx e Cron
+### tarefa 2 — Containers Nginx e Cron
 
-- **Guia completa:** `docs/guia-pessoa-2.md`
+- **Guia completa:** `docs/guia-tarefa-2.md`
 - **Entregáveis:** `nginx/Dockerfile`, `nginx/entrypoint.sh`, `cron/Dockerfile`, prints dos containers rodando
 - **Branch:** `feature/containers`
 
-### Pessoa 3 — Kubernetes (YAMLs + deploy + self-healing + scaling)
+### tarefa 3 — Kubernetes (YAMLs + deploy + self-healing + scaling)
 
-- **Guia completa:** `docs/guia-pessoa-3.md`
+- **Guia completa:** `docs/guia-tarefa-3.md`
 - **Entregáveis:** todos os `k8s/*.yaml`, prints do `kubectl get pods/svc/hpa`, vídeo do self-healing e scaling
 - **Branch:** `feature/k8s`
 
-### Pessoa 4 — Documentação + Integração + Demonstração
+### tarefa 4 — Documentação + Integração + Demonstração
 
-- **Guia completa:** `docs/guia-pessoa-4.md`
+- **Guia completa:** `docs/guia-tarefa-4.md`
 - **Entregáveis:** `docs/artigo.md`, `docs/slides.pdf`, `README.md`, roteiro de apresentação
 - **Branch:** `docs/artigo`
 
