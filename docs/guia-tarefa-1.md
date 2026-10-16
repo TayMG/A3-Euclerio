@@ -36,8 +36,6 @@ Se algum desses não estiver instalado, peça ajuda no grupo antes de continuar.
 
 ## 4. Teoria essencial
 
-Leia antes de começar. Você precisa entender isso para fazer e para responder ao professor.
-
 ### 4.1. O que é uma API REST
 
 **API** = Application Programming Interface. É um conjunto de regras que permite que dois programas conversem.
