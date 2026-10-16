@@ -1,8 +1,6 @@
-=====================================================================
 DOCUMENTO DE INTERFACES DO PROJETO
 Tema 1: Orquestração de Serviços Daemon com Kubernetes e API de
 Gerenciamento de Processos
-=====================================================================
 
 =====================================================================
 1. NOMES DAS IMAGENS DOCKER
