@@ -32,8 +32,6 @@ Se algum desses não estiver instalado, peça ajuda no grupo antes de continuar.
 
 ## 4. Teoria essencial
 
-Leia antes de começar. Você precisa entender isso para fazer e para responder ao professor.
-
 ### 4.1. O que é um daemon
 
 **Daemon** é um programa que roda em segundo plano, sem interface visual e sem estar ligado a um terminal. Ele fica "esperando" para executar tarefas de forma contínua ou sob demanda.
