@@ -1,0 +1,381 @@
+# Guia da Pessoa 2 — Containers Nginx e Cron
+
+---
+
+## 1. Objetivo
+
+Criar dois containers Docker:
+- **Nginx com cron embutido:** servidor web que também executa tarefas agendadas.
+- **Cron separado:** container dedicado apenas a executar tarefas agendadas.
+
+Os containers devem ser buildados com os nomes `nginx-cron:latest` e `cron-daemon:latest`.
+
+---
+
+## 2. O que precisa estar instalado
+
+- WSL2 com Ubuntu
+- Docker Desktop
+- Git
+
+Se algum desses não estiver instalado, peça ajuda no grupo antes de continuar.
+
+---
+
+## 3. Dependências entre pessoas
+
+**Esta guia não depende de nenhuma outra pessoa.** A Pessoa 2 pode fazer tudo sozinha.
+
+**Mas a Pessoa 3 depende desta guia:** ela precisa das imagens `nginx-cron:latest` e `cron-daemon:latest` prontas para fazer o deploy no Kubernetes. Por isso, avise no grupo assim que as imagens estiverem buildadas (passo 5.6).
+
+---
+
+## 4. Teoria essencial
+
+Leia antes de começar. Você precisa entender isso para fazer e para responder ao professor.
+
+### 4.1. O que é um daemon
+
+**Daemon** é um programa que roda em segundo plano, sem interface visual e sem estar ligado a um terminal. Ele fica "esperando" para executar tarefas de forma contínua ou sob demanda.
+
+**Características:**
+- Roda em background (sem janela, sem tela).
+- Sem terminal associado: se o usuário desliga o terminal, o daemon continua rodando.
+- Iniciado geralmente no boot do sistema.
+- Nome termina com "d" por convenção: `sshd`, `crond`, `httpd`, `dockerd`.
+
+**No seu projeto:**
+- **Nginx** é um daemon: servidor web que responde requisições HTTP.
+- **Cron** é um daemon: agendador que executa tarefas em horários definidos.
+
+**Pergunta provável do professor:** "Por que um daemon não tem terminal associado?"
+**Resposta:** Porque ele precisa rodar independente de qualquer sessão de usuário. Se estivesse preso a um terminal, morreria quando o usuário deslogasse.
+
+### 4.2. O que é Nginx
+
+**Nginx** é um servidor web de alta performance. Ele:
+- Recebe requisições HTTP.
+- Responde com conteúdo estático (HTML, imagens, etc.).
+- Pode atuar como proxy reverso e balanceador de carga.
+
+No seu projeto, o Nginx serve como exemplo de daemon rodando dentro de um container.
+
+### 4.3. O que é Cron
+
+**Cron** é um agendador de tarefas do Linux. Ele lê um arquivo chamado `crontab` e executa comandos em horários definidos.
+
+**Formato do crontab:**
+```
+* * * * * comando
+│ │ │ │ │
+│ │ │ │ └── dia da semana (0-7, 0=domingo)
+│ │ │ └──── mês (1-12)
+│ │ └────── dia do mês (1-31)
+│ └──────── hora (0-23)
+└────────── minuto (0-59)
+```
+
+**Exemplos:**
+- `* * * * *` → a cada minuto.
+- `0 * * * *` → a cada hora (no minuto 0).
+- `0 0 * * *` → todo dia à meia-noite.
+
+**No seu projeto:** a tarefa cron escreve a data atual em um arquivo de log a cada minuto.
+
+### 4.4. Por que cron precisa rodar em foreground
+
+Containers são projetados para rodar **um processo principal em foreground**. Se esse processo termina, o container para.
+
+O cron, por padrão, roda em background (daemon). Se você rodar `crond` sem a flag `-f`, ele "solta" o terminal e o container entende que o processo principal terminou → o container morre.
+
+**Solução:** usar `crond -f` (foreground). Assim, o cron fica como processo principal do container e o container não morre.
+
+**Pergunta provável do professor:** "Por que o cron precisa rodar em foreground?"
+**Resposta:** Porque containers rodam um processo principal em foreground. Se o processo termina, o container para. O `crond -f` mantém o cron em foreground para que o container continue rodando.
+
+### 4.5. O que é um Dockerfile
+
+Arquivo de texto com instruções para construir uma imagem Docker.
+
+**Comandos principais:**
+
+| Comando | O que faz |
+|---------|-----------|
+| `FROM` | Define a imagem base |
+| `WORKDIR` | Define o diretório de trabalho dentro do container |
+| `COPY` | Copia arquivos do host para a imagem |
+| `RUN` | Executa um comando durante a construção |
+| `EXPOSE` | Documenta a porta usada |
+| `CMD` | Comando padrão ao iniciar o container |
+
+### 4.6. O que é uma imagem Alpine
+
+**Alpine** é uma distribuição Linux extremamente leve (cerca de 5 MB). É muito usada em containers por ser pequena e rápida.
+
+No seu projeto, você vai usar:
+- `nginx:alpine` → Nginx sobre Alpine.
+- `alpine:latest` → Alpine puro para o container de cron.
+
+**Diferença importante:** Alpine usa `apk` como gerenciador de pacotes (em vez de `apt` do Ubuntu). Para instalar o cron no Alpine, usa-se `apk add dcron`.
+
+---
+
+## 5. Passo a passo
+
+### 5.1. Criar a estrutura de pastas
+
+No terminal (WSL2/Ubuntu):
+
+```bash
+cd ~/projeto-a3
+mkdir -p nginx cron
+```
+
+### 5.2. Criar o Dockerfile do Nginx
+
+Crie `nginx/Dockerfile` com:
+
+```dockerfile
+FROM nginx:alpine
+
+RUN apk add --no-cache dcron
+
+RUN echo '#!/bin/sh' > /entrypoint.sh && \
+    echo 'crond -b -l 8' >> /entrypoint.sh && \
+    echo 'nginx -g "daemon off;"' >> /entrypoint.sh && \
+    chmod +x /entrypoint.sh
+
+RUN echo "* * * * * echo 'Cron executando' >> /var/log/cron.log" > /etc/crontabs/root
+
+CMD ["/entrypoint.sh"]
+```
+
+**Explicação linha por linha:**
+
+- `FROM nginx:alpine` → imagem base com Nginx sobre Alpine.
+- `RUN apk add --no-cache dcron` → instala o `dcron` (versão do cron para Alpine).
+- `RUN echo '#!/bin/sh' > /entrypoint.sh` → cria o script de entrada.
+- `echo 'crond -b -l 8' >> /entrypoint.sh` → adiciona o comando para iniciar o cron em background.
+- `echo 'nginx -g "daemon off;"' >> /entrypoint.sh` → adiciona o comando para iniciar o Nginx em foreground.
+- `chmod +x /entrypoint.sh` → torna o script executável.
+- `RUN echo "* * * * * ..." > /etc/crontabs/root` → cria a tarefa cron que roda a cada minuto.
+- `CMD ["/entrypoint.sh"]` → executa o script quando o container inicia.
+
+**Por que o Nginx roda com `daemon off;`?** Pela mesma razão do cron: containers precisam de um processo em foreground. O `daemon off;` faz o Nginx rodar em foreground.
+
+### 5.3. Criar o entrypoint.sh (opcional)
+
+Se preferir separar o script do Dockerfile, crie `nginx/entrypoint.sh` com:
+
+```bash
+#!/bin/sh
+crond -b -l 8
+nginx -g "daemon off;"
+```
+
+E no Dockerfile, substitua as linhas de `echo` por:
+```dockerfile
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+```
+
+### 5.4. Criar o Dockerfile do Cron separado
+
+Crie `cron/Dockerfile` com:
+
+```dockerfile
+FROM alpine:latest
+
+RUN apk add --no-cache dcron
+
+RUN echo "* * * * * date >> /var/log/cron-task.log" > /etc/crontabs/root
+
+CMD ["crond", "-f", "-l", "8"]
+```
+
+**Explicação linha por linha:**
+
+- `FROM alpine:latest` → imagem base Alpine pura.
+- `RUN apk add --no-cache dcron` → instala o cron.
+- `RUN echo "* * * * * date >> ..." > /etc/crontabs/root` → cria a tarefa que escreve a data no log a cada minuto.
+- `CMD ["crond", "-f", "-l", "8"]` → inicia o cron em **foreground** (`-f`).
+  - `-f` → foreground.
+  - `-l 8` → nível de log 8 (detalhado).
+
+### 5.5. Criar o arquivo crontab (opcional)
+
+Se quiser documentar a tarefa separadamente, crie `cron/crontab` com:
+
+```
+* * * * * date >> /var/log/cron-task.log
+```
+
+### 5.6. Buildar as imagens
+
+> ⚠️ **A Pessoa 3 depende deste passo.** Avise no grupo assim que as imagens estiverem prontas.
+
+```bash
+cd ~/projeto-a3/nginx
+docker build -t nginx-cron:latest .
+
+cd ~/projeto-a3/cron
+docker build -t cron-daemon:latest .
+```
+
+**Explicação:**
+- `docker build` → constrói uma imagem.
+- `-t nginx-cron:latest` → nome `nginx-cron`, tag `latest`.
+- `-t cron-daemon:latest` → nome `cron-daemon`, tag `latest`.
+- `.` → usa o Dockerfile da pasta atual.
+
+Verifique:
+```bash
+docker images | grep -E "nginx-cron|cron-daemon"
+```
+
+### 5.7. Testar os containers
+
+**Testar o container do Nginx:**
+
+```bash
+docker run -d -p 8080:80 --name nginx-teste nginx-cron:latest
+```
+
+**Explicação:**
+- `-d` → roda em background.
+- `-p 8080:80` → mapeia a porta 8080 do host para a 80 do container (usei 8080 para não conflitar com outros serviços).
+- `--name nginx-teste` → nome do container.
+
+Verifique:
+```bash
+docker ps
+curl http://127.0.0.1:8080
+```
+
+Deve retornar a página padrão do Nginx ("Welcome to nginx!").
+
+Ver logs do cron:
+```bash
+docker exec nginx-teste cat /var/log/cron.log
+```
+
+**Testar o container do Cron:**
+
+```bash
+docker run -d --name cron-teste cron-daemon:latest
+```
+
+Verifique:
+```bash
+docker ps
+docker logs cron-teste
+```
+
+Ver logs da tarefa:
+```bash
+docker exec cron-teste cat /var/log/cron-task.log
+```
+
+**Parar e remover os containers de teste:**
+
+```bash
+docker stop nginx-teste cron-teste
+docker rm nginx-teste cron-teste
+```
+
+### 5.8. Tirar prints
+
+Tire **3 prints** para o artigo e a apresentação:
+
+1. `docker ps` mostrando os containers rodando.
+2. `docker logs cron-teste` mostrando a tarefa executando.
+3. `docker images` mostrando as imagens criadas.
+
+Salve em `docs/evidencias/pessoa-2/`.
+
+### 5.9. Subir para o GitHub
+
+```bash
+cd ~/projeto-a3
+git status
+git checkout -b feature/containers
+git add nginx/ cron/
+git commit -m "Adiciona containers Nginx e Cron"
+git push origin feature/containers
+```
+
+Depois, no GitHub:
+1. Abra o repositório.
+2. Clique em **Compare & pull request**.
+3. Escreva uma descrição curta.
+4. Clique em **Create pull request**.
+5. Avise no grupo para alguém revisar.
+
+---
+
+## 6. Código completo (resumo dos arquivos)
+
+### `nginx/Dockerfile`
+```dockerfile
+FROM nginx:alpine
+
+RUN apk add --no-cache dcron
+
+RUN echo '#!/bin/sh' > /entrypoint.sh && \
+    echo 'crond -b -l 8' >> /entrypoint.sh && \
+    echo 'nginx -g "daemon off;"' >> /entrypoint.sh && \
+    chmod +x /entrypoint.sh
+
+RUN echo "* * * * * echo 'Cron executando' >> /var/log/cron.log" > /etc/crontabs/root
+
+CMD ["/entrypoint.sh"]
+```
+
+### `nginx/entrypoint.sh` (opcional)
+```bash
+#!/bin/sh
+crond -b -l 8
+nginx -g "daemon off;"
+```
+
+### `cron/Dockerfile`
+```dockerfile
+FROM alpine:latest
+
+RUN apk add --no-cache dcron
+
+RUN echo "* * * * * date >> /var/log/cron-task.log" > /etc/crontabs/root
+
+CMD ["crond", "-f", "-l", "8"]
+```
+
+### `cron/crontab` (opcional)
+```
+* * * * * date >> /var/log/cron-task.log
+```
+
+---
+
+## 7. Erros comuns e soluções
+
+| Erro | Causa | Solução |
+|------|-------|---------|
+| `crond: can't open /etc/crontabs/root` | Arquivo crontab não foi criado | Verificar se o `RUN echo ... > /etc/crontabs/root` está no Dockerfile |
+| Container para logo após iniciar | Cron rodando em background | Usar `crond -f` (foreground) |
+| `nginx: command not found` | Imagem base errada | Usar `nginx:alpine` como base |
+| `apk: command not found` | Imagem base não é Alpine | Verificar se o `FROM` é Alpine |
+| `docker: command not found` | Docker Desktop fechado | Abrir o Docker Desktop e esperar |
+| `permission denied` no docker | Usuário não está no grupo docker | `sudo usermod -aG docker $USER` e reiniciar |
+| Porta 80 já em uso | Outro serviço usando a porta | Usar `-p 8080:80` no `docker run` |
+| Cron não executa a tarefa | Formato do crontab errado | Verificar o formato `* * * * * comando` |
+
+---
+
+## 8. Próximos passos
+
+Depois de terminar:
+
+1. Avise no grupo que os containers estão prontos e as imagens `nginx-cron:latest` e `cron-daemon:latest` foram buildadas.
+2. A Pessoa 3 vai usar essas imagens no Kubernetes.
+3. Se a Pessoa 3 pedir ajustes, atenda e refaça o build.
+4. Guarde os prints para o artigo e os slides.
