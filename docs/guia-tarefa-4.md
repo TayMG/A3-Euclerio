@@ -50,8 +50,6 @@ Esta guia tem **várias dependências**, mas a maior parte pode ser feita **ante
 
 ## 4. Teoria essencial
 
-Leia antes de começar. Você precisa entender isso para escrever e apresentar.
-
 ### 4.1. O que é um artigo acadêmico
 
 Um artigo é um documento escrito que apresenta um projeto de forma estruturada. Geralmente tem:
