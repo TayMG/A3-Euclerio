@@ -42,8 +42,6 @@ Esta guia tem **duas dependências**:
 
 ## 4. Teoria essencial
 
-Leia antes de começar. Você precisa entender isso para fazer e para responder ao professor.
-
 ### 4.1. O que é Kubernetes
 
 **Kubernetes** (K8s) é um orquestrador de containers. Ele automatiza:
