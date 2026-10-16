@@ -269,7 +269,7 @@ minikube start --driver=docker
 
 ---
 
-## 11. Regras de Ouro
+## 11. Regras
 
 1. **Cada um na sua branch.** Ninguém mexe na branch do outro.
 2. **Pull Request sempre.** Nada vai direto para a `main`.
