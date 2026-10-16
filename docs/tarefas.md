@@ -35,11 +35,11 @@ Escrever os YAMLs do Kubernetes, fazer o deploy no Minikube e demonstrar self-he
 
 ---
 
-## Tarefa 4 — Documentação + Integração
+## Tarefa 4 — Documentação
 
 **Responsável:** ____________________
 
 **Resumo:**
-Escrever o artigo, montar os slides, criar o README e o roteiro da apresentação. Coordenar a integração final e ensaiar com o grupo.
+Escrever o artigo, montar os slides, criar o README. Cobrar as entregas das outras pessoas.
 
 **Guia completa:** `docs/guia-pessoa-4.md`
