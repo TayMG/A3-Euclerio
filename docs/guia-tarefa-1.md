@@ -1,4 +1,4 @@
-# Guia da tarefa 1 — API FastAPI + psutil
+# Guia da Tarefa 1 — API FastAPI + psutil
 
 ---
 
@@ -30,7 +30,7 @@ Se algum desses não estiver instalado, peça ajuda no grupo antes de continuar.
 
 **Esta guia não depende de nenhuma outra tarefa.**
 
-**Mas a pessoa da tarefa 3 depende desta guia:** ela precisa da imagem `process-api:latest` pronta para fazer o deploy no Kubernetes. Por isso, avise no grupo assim que a imagem estiver buildada (passo 4.6).
+**Mas a pessoa da Tarefa 3 depende desta guia:** ela precisa da imagem `process-api:latest` pronta para fazer o deploy no Kubernetes. Por isso, avise no grupo assim que a imagem estiver buildada (passo 5.6).
 
 ---
 
@@ -303,7 +303,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 ### 5.6. Buildar a imagem Docker
 
-> ⚠️ **A tarefa 3 depende deste passo.** Avise no grupo assim que a imagem estiver pronta.
+> ⚠️ **A Tarefa 3 depende deste passo.** Avise no grupo assim que a imagem estiver pronta.
 
 Dentro da pasta `api/`:
 
@@ -431,6 +431,6 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 Depois de terminar:
 
 1. Avise no grupo que a API está pronta e a imagem `process-api:latest` foi buildada.
-2. A pessoa da tarefa 3 vai usar essa imagem no Kubernetes.
-3. Se a tarefa 3 pedir ajustes, atenda e refaça o build.
+2. A pessoa da Tarefa 3 vai usar essa imagem no Kubernetes.
+3. Se a Tarefa 3 pedir ajustes, atenda e refaça o build.
 4. Guarde os prints para o artigo e os slides.
