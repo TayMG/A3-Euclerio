@@ -134,8 +134,18 @@ projeto-a3/
 │   └── hpa.yaml
 ├── docs/                   (Pessoa 4)
 │   ├── interfaces.md
+│   ├── tarefas.md
+│   ├── guia-pessoa-1.md
+│   ├── guia-pessoa-2.md
+│   ├── guia-pessoa-3.md
+│   ├── guia-pessoa-4.md
 │   ├── artigo.md
-│   └── slides.pdf
+│   ├── slides.pdf
+│   └── evidencias/
+│       ├── pessoa-1/
+│       ├── pessoa-2/
+│       ├── pessoa-3/
+│       └── pessoa-4/
 ├── scripts/                (todos)
 │   ├── build.sh
 │   └── deploy.sh
@@ -230,60 +240,32 @@ minikube start --driver=docker
 
 ## 9. Responsabilidades por Pessoa
 
+> A divisão de tarefas está detalhada em `docs/tarefas.md`.
+> Cada pessoa deve seguir a sua guia (`docs/guia-pessoa-X.md`).
+
 ### Pessoa 1 — API FastAPI + psutil
 
+- **Guia completa:** `docs/guia-pessoa-1.md`
 - **Entregáveis:** `api/main.py`, `api/requirements.txt`, `api/Dockerfile`, prints da API funcionando
 - **Branch:** `feature/api`
-- **Prazo:** final da Semana 2
 
 ### Pessoa 2 — Containers Nginx e Cron
 
+- **Guia completa:** `docs/guia-pessoa-2.md`
 - **Entregáveis:** `nginx/Dockerfile`, `nginx/entrypoint.sh`, `cron/Dockerfile`, prints dos containers rodando
 - **Branch:** `feature/containers`
-- **Prazo:** final da Semana 2
 
 ### Pessoa 3 — Kubernetes (YAMLs + deploy + self-healing + scaling)
 
+- **Guia completa:** `docs/guia-pessoa-3.md`
 - **Entregáveis:** todos os `k8s/*.yaml`, prints do `kubectl get pods/svc/hpa`, vídeo do self-healing e scaling
 - **Branch:** `feature/k8s`
-- **Prazo:** final da Semana 3
 
 ### Pessoa 4 — Documentação + Integração + Demonstração
 
+- **Guia completa:** `docs/guia-pessoa-4.md`
 - **Entregáveis:** `docs/artigo.md`, `docs/slides.pdf`, `README.md`, roteiro de apresentação
 - **Branch:** `docs/artigo`
-- **Prazo:** final da Semana 4
-
----
-
-## 10. Cronograma de Integração
-
-### Semana 1
-
-- Todos estudam suas partes.
-- Pessoa 4 cria o repositório no GitHub.
-- Pessoa 4 cria este documento de interfaces.
-
-### Semana 2
-
-- **Pessoa 1:** termina a API e builda a imagem.
-- **Pessoa 2:** termina os containers e builda as imagens.
-- **Pessoa 3:** escreve os YAMLs (com imagens genéricas se preciso).
-- **Pessoa 4:** escreve Introdução e Teoria do artigo.
-
-### Semana 3 (Integração)
-
-- Reunião do grupo (presencial ou online).
-- Todos juntos: fazer deploy no Minikube.
-- **Pessoa 3:** demonstrar self-healing e scaling.
-- **Pessoa 4:** gravar prints e vídeos.
-
-### Semana 4 (Finalização)
-
-- **Pessoa 4:** finalizar artigo e slides.
-- Todos: ensaiar apresentação (3x cronometrado).
-- Todos: treinar respostas para o professor.
-- Enviar documentação para o professor (25/11/2026).
 
 ---
 
