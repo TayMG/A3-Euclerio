@@ -1,4 +1,4 @@
-# Guia da Pessoa 2 — Containers Nginx e Cron
+# Guia da tarefa 2 — Containers Nginx e Cron
 
 ---
 
@@ -22,11 +22,11 @@ Se algum desses não estiver instalado, peça ajuda no grupo antes de continuar.
 
 ---
 
-## 3. Dependências entre pessoas
+## 3. Dependências entre tarefas
 
-**Esta guia não depende de nenhuma outra pessoa.** A Pessoa 2 pode fazer tudo sozinha.
+**Esta guia não depende de nenhuma outra tarefa.**
 
-**Mas a Pessoa 3 depende desta guia:** ela precisa das imagens `nginx-cron:latest` e `cron-daemon:latest` prontas para fazer o deploy no Kubernetes. Por isso, avise no grupo assim que as imagens estiverem buildadas (passo 5.6).
+**Mas a pessoa da tarefa 3 depende desta guia:** ela precisa das imagens `nginx-cron:latest` e `cron-daemon:latest` prontas para fazer o deploy no Kubernetes. Por isso, avise no grupo assim que as imagens estiverem buildadas (passo 5.6).
 
 ---
 
@@ -210,7 +210,7 @@ Se quiser documentar a tarefa separadamente, crie `cron/crontab` com:
 
 ### 5.6. Buildar as imagens
 
-> ⚠️ **A Pessoa 3 depende deste passo.** Avise no grupo assim que as imagens estiverem prontas.
+> ⚠️ **A tarefa 3 depende deste passo.** Avise no grupo assim que as imagens estiverem prontas.
 
 ```bash
 cd ~/projeto-a3/nginx
@@ -289,7 +289,7 @@ Tire **3 prints** para o artigo e a apresentação:
 2. `docker logs cron-teste` mostrando a tarefa executando.
 3. `docker images` mostrando as imagens criadas.
 
-Salve em `docs/evidencias/pessoa-2/`.
+Salve em `docs/evidencias/tarefa-2/`.
 
 ### 5.9. Subir para o GitHub
 
@@ -374,6 +374,6 @@ CMD ["crond", "-f", "-l", "8"]
 Depois de terminar:
 
 1. Avise no grupo que os containers estão prontos e as imagens `nginx-cron:latest` e `cron-daemon:latest` foram buildadas.
-2. A Pessoa 3 vai usar essas imagens no Kubernetes.
-3. Se a Pessoa 3 pedir ajustes, atenda e refaça o build.
+2. A tarefa 3 vai usar essas imagens no Kubernetes.
+3. Se a tarefa 3 pedir ajustes, atenda e refaça o build.
 4. Guarde os prints para o artigo e os slides.
