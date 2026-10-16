@@ -1,4 +1,4 @@
-# Guia da Pessoa 3 — Kubernetes (YAMLs + Deploy + Self-healing + Scaling)
+# Guia da tarefa 3 — Kubernetes (YAMLs + Deploy + Self-healing + Scaling)
 
 ---
 
