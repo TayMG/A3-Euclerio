@@ -165,6 +165,85 @@ Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 
 **Por que o Nginx roda com `daemon off;`?** Pela mesma razão do cron: containers precisam de um processo em foreground. O `daemon off;` faz o Nginx rodar em foreground.
 
+### 5.2.1. (Opcional) Criar um site personalizado que mostra o log do Cron
+
+Se você quiser impressionar na apresentação, podemos fazer o Nginx exibir uma página com o nome do projeto e o log do cron em tempo real.
+
+**1. Criar a pasta e o arquivo HTML:**
+Ainda dentro da pasta `nginx/`, crie a pasta html e o arquivo index:
+```bash
+mkdir -p html
+nano html/index.html
+```
+Cole o código abaixo dentro do editor:
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Projeto A3 - Daemon</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f9; }
+        h1 { color: #333; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto; }
+        iframe { width: 100%; height: 150px; border: 1px solid #ccc; border-radius: 4px; background: #fff; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Projeto A3 - Tema 1</h1>
+        <h2>Nginx + Cron Daemon</h2>
+        <p>Status: <strong>Servidor Nginx rodando!</strong></p>
+        <p>Log do Cron em tempo real (atualiza a cada minuto):</p>
+        
+        <!-- O iframe vai ler o arquivo cron.log que o Nginx vai servir -->
+        <iframe src="cron.log" title="Log do Cron"></iframe>
+    </div>
+</body>
+</html>
+```
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
+
+**2. Atualizar o Dockerfile do Nginx:**
+Vamos alterar o Dockerfile para copiar a página e fazer o cron escrever o log direto na pasta do site.
+```bash
+nano Dockerfile
+```
+Atualize o seu Dockerfile para ficar exatamente assim:
+```dockerfile
+FROM nginx:alpine
+
+RUN apk add --no-cache dcron
+
+RUN echo '#!/bin/sh' > /entrypoint.sh && \
+    echo 'crond -b -l 8' >> /entrypoint.sh && \
+    echo 'nginx -g "daemon off;"' >> /entrypoint.sh && \
+    chmod +x /entrypoint.sh
+
+# Mudamos o caminho do log para a pasta padrão do site
+RUN echo "* * * * * echo 'Cron executando em \$(date)' >> /usr/share/nginx/html/cron.log" > /etc/crontabs/root
+
+# Copia a nossa pasta html para dentro do container
+COPY html /usr/share/nginx/html
+
+CMD ["/entrypoint.sh"]
+```
+*(Atenção: copie o código exatamente como está acima, principalmente a linha do `echo` com o `\$(date)` para pegar a data atual).*
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
+
+**3. Testar o site novo:**
+Builde a imagem novamente:
+```bash
+docker build -t nginx-cron:latest .
+```
+Rode o container:
+```bash
+docker run -d -p 8080:80 --name nginx-teste nginx-cron:latest
+```
+Abra o navegador no Windows e acesse `http://127.0.0.1:8080`. 
+
+Você verá a página do projeto e, dentro do quadro, o cron atualizando a cada minuto! **Isso é a prova visual perfeita para o professor.**
+
 ### 5.3. Criar o entrypoint.sh (opcional)
 
 Se preferir separar o script do Dockerfile (em vez de usar os comandos `echo` no passo anterior), crie o arquivo:
@@ -193,23 +272,18 @@ Cole o código abaixo dentro do editor:
 ```dockerfile
 FROM alpine:latest
 
-RUN apk add --no-cache dcron
-
 RUN echo "* * * * * date >> /var/log/cron-task.log" > /etc/crontabs/root
 
-CMD ["crond", "-f", "-l", "8"]
+CMD ["busybox", "crond", "-f", "-l", "8", "-c", "/etc/crontabs"]
 ```
 Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 
 **Explicação linha por linha:**
 
 - `FROM alpine:latest` → imagem base Alpine pura.
-- `RUN apk add --no-cache dcron` → instala o cron.
 - `RUN echo "* * * * * date >> ..." > /etc/crontabs/root` → cria a tarefa que escreve a data no log a cada minuto.
-- `CMD ["crond", "-f", "-l", "8"]` → inicia o cron em **foreground** (`-f`).
-  - `-f` → foreground.
-  - `-l 8` → nível de log 8 (detalhado).
- 
+- `CMD ["busybox", "crond", "-f", "-l", "8", "-c", "/etc/crontabs"]` → inicia o cron nativo do Alpine em **foreground** (`-f`).
+
 > ⚠️ **Observação sobre alteração no código:**
 > A linha `RUN apk add --no-cache dcron` foi removida do Dockerfile do Cron. 
 > **Motivo:** o pacote `dcron` apresenta um erro de permissão (`setpgid: Operation not permitted`) ao rodar dentro de containers Docker modernos, o que fazia o container morrer logo após iniciar. 
@@ -271,12 +345,13 @@ Verifique se está rodando:
 ```bash
 docker ps
 ```
-Abra no navegador do Windows: `http://127.0.0.1:8080` (deve aparecer a página "Welcome to nginx!").
+Abra no navegador do Windows: `http://127.0.0.1:8080` (deve aparecer a página "Welcome to nginx!" ou o site personalizado se você fez o passo 5.2.1).
 
 Para ver se o cron do Nginx está funcionando (espere 1 minuto e rode):
 ```bash
 docker exec nginx-teste cat /var/log/cron.log
 ```
+*(Se você fez o passo 5.2.1, o log estará em `/usr/share/nginx/html/cron.log`)*.
 
 **2. Testar o container do Cron separado:**
 ```bash
@@ -337,7 +412,7 @@ Depois, no GitHub:
 
 ## 6. Código completo (resumo dos arquivos)
 
-### `nginx/Dockerfile`
+### `nginx/Dockerfile` (Versão Básica)
 ```dockerfile
 FROM nginx:alpine
 
@@ -353,6 +428,24 @@ RUN echo "* * * * * echo 'Cron executando' >> /var/log/cron.log" > /etc/crontabs
 CMD ["/entrypoint.sh"]
 ```
 
+### `nginx/Dockerfile` (Versão com Site - Passo 5.2.1)
+```dockerfile
+FROM nginx:alpine
+
+RUN apk add --no-cache dcron
+
+RUN echo '#!/bin/sh' > /entrypoint.sh && \
+    echo 'crond -b -l 8' >> /entrypoint.sh && \
+    echo 'nginx -g "daemon off;"' >> /entrypoint.sh && \
+    chmod +x /entrypoint.sh
+
+RUN echo "* * * * * echo 'Cron executando em \$(date)' >> /usr/share/nginx/html/cron.log" > /etc/crontabs/root
+
+COPY html /usr/share/nginx/html
+
+CMD ["/entrypoint.sh"]
+```
+
 ### `nginx/entrypoint.sh` (opcional)
 ```bash
 #!/bin/sh
@@ -364,11 +457,9 @@ nginx -g "daemon off;"
 ```dockerfile
 FROM alpine:latest
 
-RUN apk add --no-cache dcron
-
 RUN echo "* * * * * date >> /var/log/cron-task.log" > /etc/crontabs/root
 
-CMD ["crond", "-f", "-l", "8"]
+CMD ["busybox", "crond", "-f", "-l", "8", "-c", "/etc/crontabs"]
 ```
 
 ### `cron/crontab` (opcional)
