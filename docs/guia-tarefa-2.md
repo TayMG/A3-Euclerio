@@ -140,14 +140,12 @@ Cole o código abaixo:
 ```dockerfile
 FROM nginx:alpine
 
-RUN apk add --no-cache dcron
-
 RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'crond -b -l 8' >> /entrypoint.sh && \
+    echo 'busybox crond -b -l 8 -c /etc/crontabs' >> /entrypoint.sh && \
     echo 'nginx -g "daemon off;"' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
-RUN echo "* * * * * echo 'Cron executando' >> /var/log/cron.log" > /etc/crontabs/root
+RUN echo "* * * * * date >> /var/log/cron.log" > /etc/crontabs/root
 
 CMD ["/entrypoint.sh"]
 ```
@@ -183,8 +181,8 @@ Cole o código HTML abaixo dentro do editor:
         <p>Status: <strong>Servidor Nginx rodando!</strong></p>
         <p>Log do Cron em tempo real (atualiza a cada minuto):</p>
         
-        <!-- O iframe vai ler o arquivo cron.log que o Nginx vai servir -->
-        <iframe src="cron.log" title="Log do Cron"></iframe>
+        <!-- O iframe vai ler o arquivo cron.txt que o Nginx vai servir -->
+        <iframe src="cron.txt" title="Log do Cron"></iframe>
     </div>
 </body>
 </html>
@@ -195,38 +193,24 @@ Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 ```bash
 nano Dockerfile
 ```
-Atualize o seu Dockerfile para ficar exatamente assim:
+Atualize o seu Dockerfile para ficar exatamente assim (usando o busybox e a extensão .txt):
 ```dockerfile
 FROM nginx:alpine
 
-RUN apk add --no-cache dcron
-
 RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'crond -b -l 8' >> /entrypoint.sh && \
+    echo 'busybox crond -b -l 8 -c /etc/crontabs' >> /entrypoint.sh && \
     echo 'nginx -g "daemon off;"' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
-# O log agora vai para a pasta do site
-RUN echo "* * * * * echo 'Cron executando em \$(date)' >> /usr/share/nginx/html/cron.log" > /etc/crontabs/root
+# O log agora vai para a pasta do site com extensão .txt
+RUN echo "* * * * * date >> /usr/share/nginx/html/cron.txt" > /etc/crontabs/root
 
 # Copia a nossa pasta html para dentro do container
 COPY html /usr/share/nginx/html
 
 CMD ["/entrypoint.sh"]
 ```
-*(Atenção: copie o código exatamente como está acima, principalmente a linha do `echo` com o `\$(date)`).*
 Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
-
-> **O que faz cada linha do Dockerfile?**
-> - `FROM nginx:alpine` → imagem base com Nginx sobre Alpine.
-> - `RUN apk add --no-cache dcron` → instala o `dcron` (versão do cron para Alpine).
-> - `RUN echo '#!/bin/sh' > /entrypoint.sh` → cria o script de entrada.
-> - `echo 'crond -b -l 8' >> /entrypoint.sh` → adiciona o comando para iniciar o cron em background.
-> - `echo 'nginx -g "daemon off;"' >> /entrypoint.sh` → adiciona o comando para iniciar o Nginx em foreground.
-> - `chmod +x /entrypoint.sh` → torna o script executável.
-> - `RUN echo "* * * * * ..." > /etc/crontabs/root` → cria a tarefa cron que roda a cada minuto.
-> - `COPY html /usr/share/nginx/html` → copia o seu site para dentro do container.
-> - `CMD ["/entrypoint.sh"]` → executa o script quando o container inicia.
 
 ### 5.3. Criar o entrypoint.sh (opcional)
 
@@ -237,7 +221,7 @@ nano entrypoint.sh
 Cole o código:
 ```bash
 #!/bin/sh
-crond -b -l 8
+busybox crond -b -l 8 -c /etc/crontabs
 nginx -g "daemon off;"
 ```
 Salve e saia (`Ctrl + O`, `Enter`, `Ctrl + X`).
@@ -333,7 +317,7 @@ Para ver se o cron do Nginx está funcionando (espere 1 minuto e rode o comando 
     ```
 *   **Se você fez a Opção B (Site Personalizado):** O log fica na pasta do site, então o comando é:
     ```bash
-    docker exec nginx-teste cat /usr/share/nginx/html/cron.log
+    docker exec nginx-teste cat /usr/share/nginx/html/cron.txt
     ```
 
 **2. Testar o container do Cron separado:**
@@ -400,14 +384,12 @@ Depois, no GitHub:
 ```dockerfile
 FROM nginx:alpine
 
-RUN apk add --no-cache dcron
-
 RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'crond -b -l 8' >> /entrypoint.sh && \
+    echo 'busybox crond -b -l 8 -c /etc/crontabs' >> /entrypoint.sh && \
     echo 'nginx -g "daemon off;"' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
-RUN echo "* * * * * echo 'Cron executando' >> /var/log/cron.log" > /etc/crontabs/root
+RUN echo "* * * * * date >> /var/log/cron.log" > /etc/crontabs/root
 
 CMD ["/entrypoint.sh"]
 ```
@@ -416,14 +398,12 @@ CMD ["/entrypoint.sh"]
 ```dockerfile
 FROM nginx:alpine
 
-RUN apk add --no-cache dcron
-
 RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'crond -b -l 8' >> /entrypoint.sh && \
+    echo 'busybox crond -b -l 8 -c /etc/crontabs' >> /entrypoint.sh && \
     echo 'nginx -g "daemon off;"' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
-RUN echo "* * * * * echo 'Cron executando em \$(date)' >> /usr/share/nginx/html/cron.log" > /etc/crontabs/root
+RUN echo "* * * * * date >> /usr/share/nginx/html/cron.txt" > /etc/crontabs/root
 
 COPY html /usr/share/nginx/html
 
@@ -433,7 +413,7 @@ CMD ["/entrypoint.sh"]
 ### `nginx/entrypoint.sh` (opcional)
 ```bash
 #!/bin/sh
-crond -b -l 8
+busybox crond -b -l 8 -c /etc/crontabs
 nginx -g "daemon off;"
 ```
 
@@ -457,7 +437,7 @@ CMD ["busybox", "crond", "-f", "-l", "8", "-c", "/etc/crontabs"]
 
 | Erro | Causa | Solução |
 |------|-------|---------|
-| `crond: can't open /etc/crontabs/root` | Arquivo crontab não foi criado | Verificar se o `RUN echo ... > /etc/crontabs/root` está no Dockerfile |
+| `setpgid: Operation not permitted` | O pacote `dcron` falha no Docker | Use o `busybox crond` (como está no Dockerfile atual) |
 | Container para logo após iniciar | Cron rodando em background | Usar `crond -f` (foreground) |
 | `nginx: command not found` | Imagem base errada | Usar `nginx:alpine` como base |
 | `apk: command not found` | Imagem base não é Alpine | Verificar se o `FROM` é Alpine |
@@ -465,8 +445,8 @@ CMD ["busybox", "crond", "-f", "-l", "8", "-c", "/etc/crontabs"]
 | `permission denied` no docker | Usuário não está no grupo docker | `sudo usermod -aG docker $USER` e reiniciar |
 | Porta 80 já em uso | Outro serviço usando a porta | Usar `-p 8080:80` no `docker run` |
 | Cron não executa a tarefa | Formato do crontab errado | Verificar o formato `* * * * * comando` |
-| `cat: can't open '/var/log/cron.log'` | Tentando ler o log básico, mas você fez o site | Use o caminho `/usr/share/nginx/html/cron.log` |
-| Site com "404 Not Found" no quadro | O Dockerfile está gravando o log no lugar errado | Use o Dockerfile da Opção B (que grava em `/usr/share/nginx/html/cron.log`) |
+| `cat: can't open '/var/log/cron.log'` | Tentando ler o log básico, mas você fez o site | Use o caminho `/usr/share/nginx/html/cron.txt` |
+| Site com "404 Not Found" ou baixando arquivo | O Dockerfile está gravando o log com a extensão errada ou no lugar errado | Use o Dockerfile da Opção B (que grava em `/usr/share/nginx/html/cron.txt`) |
 
 ---
 
