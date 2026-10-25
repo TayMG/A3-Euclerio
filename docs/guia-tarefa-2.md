@@ -114,18 +114,27 @@ No seu projeto, você vai usar:
 
 ## 5. Passo a passo
 
+> **Dica de Ouro:** Para criar arquivos no terminal do Ubuntu, usaremos o editor de texto `nano`. 
+> **Para salvar e sair do `nano`:** Aperte `Ctrl + O` (letra O), aperte `Enter` para confirmar, e depois `Ctrl + X` para sair.
+> Se preferir, você pode digitar `code .` para abrir o VS Code e criar os arquivos por lá.
+
 ### 5.1. Criar a estrutura de pastas
 
-No terminal (WSL2/Ubuntu):
+No terminal (WSL2/Ubuntu), execute os comandos abaixo para criar a pasta do projeto e as subpastas de uma vez:
 
 ```bash
+mkdir -p ~/projeto-a3/nginx ~/projeto-a3/cron
 cd ~/projeto-a3
-mkdir -p nginx cron
 ```
 
 ### 5.2. Criar o Dockerfile do Nginx
 
-Crie `nginx/Dockerfile` com:
+Entre na pasta do Nginx e abra o editor de texto:
+```bash
+cd nginx
+nano Dockerfile
+```
+Cole o código abaixo dentro do editor:
 
 ```dockerfile
 FROM nginx:alpine
@@ -141,6 +150,7 @@ RUN echo "* * * * * echo 'Cron executando' >> /var/log/cron.log" > /etc/crontabs
 
 CMD ["/entrypoint.sh"]
 ```
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 
 **Explicação linha por linha:**
 
@@ -157,23 +167,28 @@ CMD ["/entrypoint.sh"]
 
 ### 5.3. Criar o entrypoint.sh (opcional)
 
-Se preferir separar o script do Dockerfile, crie `nginx/entrypoint.sh` com:
-
+Se preferir separar o script do Dockerfile (em vez de usar os comandos `echo` no passo anterior), crie o arquivo:
+```bash
+nano entrypoint.sh
+```
+Cole o código:
 ```bash
 #!/bin/sh
 crond -b -l 8
 nginx -g "daemon off;"
 ```
+Salve e saia (`Ctrl + O`, `Enter`, `Ctrl + X`).
 
-E no Dockerfile, substitua as linhas de `echo` por:
-```dockerfile
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-```
+Se você fizer isso, precisará alterar o Dockerfile para copiar esse arquivo (substituindo as linhas de `echo` por `COPY entrypoint.sh /entrypoint.sh` e `RUN chmod +x /entrypoint.sh`). **Recomendação:** para facilitar, ignore o passo 5.3 e apenas use o Dockerfile do passo 5.2.
 
 ### 5.4. Criar o Dockerfile do Cron separado
 
-Crie `cron/Dockerfile` com:
+Volte para a pasta raiz do projeto, entre na pasta do cron e abra o editor:
+```bash
+cd ~/projeto-a3/cron
+nano Dockerfile
+```
+Cole o código abaixo dentro do editor:
 
 ```dockerfile
 FROM alpine:latest
@@ -184,6 +199,7 @@ RUN echo "* * * * * date >> /var/log/cron-task.log" > /etc/crontabs/root
 
 CMD ["crond", "-f", "-l", "8"]
 ```
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 
 **Explicação linha por linha:**
 
@@ -196,20 +212,28 @@ CMD ["crond", "-f", "-l", "8"]
 
 ### 5.5. Criar o arquivo crontab (opcional)
 
-Se quiser documentar a tarefa separadamente, crie `cron/crontab` com:
-
+Se quiser documentar a tarefa separadamente (apenas para consulta, não é lido pelo Dockerfile), crie:
+```bash
+nano crontab
+```
+Cole:
 ```
 * * * * * date >> /var/log/cron-task.log
 ```
+Salve e saia (`Ctrl + O`, `Enter`, `Ctrl + X`).
 
 ### 5.6. Buildar as imagens
 
 > ⚠️ **A Tarefa 3 depende deste passo.** Avise no grupo assim que as imagens estiverem prontas.
 
+**Para buildar a imagem do Nginx:**
 ```bash
 cd ~/projeto-a3/nginx
 docker build -t nginx-cron:latest .
+```
 
+**Para buildar a imagem do Cron:**
+```bash
 cd ~/projeto-a3/cron
 docker build -t cron-daemon:latest .
 ```
@@ -220,15 +244,15 @@ docker build -t cron-daemon:latest .
 - `-t cron-daemon:latest` → nome `cron-daemon`, tag `latest`.
 - `.` → usa o Dockerfile da pasta atual.
 
-Verifique:
+Verifique se as duas imagens foram criadas:
 ```bash
 docker images | grep -E "nginx-cron|cron-daemon"
 ```
 
 ### 5.7. Testar os containers
 
-**Testar o container do Nginx:**
-
+**1. Testar o container do Nginx:**
+Rode o container em background:
 ```bash
 docker run -d -p 8080:80 --name nginx-teste nginx-cron:latest
 ```
@@ -238,21 +262,18 @@ docker run -d -p 8080:80 --name nginx-teste nginx-cron:latest
 - `-p 8080:80` → mapeia a porta 8080 do host para a 80 do container (usei 8080 para não conflitar com outros serviços).
 - `--name nginx-teste` → nome do container.
 
-Verifique:
+Verifique se está rodando:
 ```bash
 docker ps
-curl http://127.0.0.1:8080
 ```
+Abra no navegador do Windows: `http://127.0.0.1:8080` (deve aparecer a página "Welcome to nginx!").
 
-Deve retornar a página padrão do Nginx ("Welcome to nginx!").
-
-Ver logs do cron:
+Para ver se o cron do Nginx está funcionando (espere 1 minuto e rode):
 ```bash
 docker exec nginx-teste cat /var/log/cron.log
 ```
 
-**Testar o container do Cron:**
-
+**2. Testar o container do Cron separado:**
 ```bash
 docker run -d --name cron-teste cron-daemon:latest
 ```
@@ -263,19 +284,23 @@ docker ps
 docker logs cron-teste
 ```
 
-Ver logs da tarefa:
+Para ver os logs da tarefa agendada (espere 1 minuto):
 ```bash
 docker exec cron-teste cat /var/log/cron-task.log
 ```
 
-**Parar e remover os containers de teste:**
-
+**3. Parar e remover os containers de teste:**
 ```bash
 docker stop nginx-teste cron-teste
 docker rm nginx-teste cron-teste
 ```
 
 ### 5.8. Tirar prints
+
+Primeiro, crie a pasta para salvar as evidências:
+```bash
+mkdir -p ~/projeto-a3/docs/evidencias/tarefa-2
+```
 
 Tire **3 prints** para o artigo e a apresentação:
 
