@@ -131,25 +131,35 @@ Arquivo de texto com instruções para construir uma imagem Docker.
 
 ## 5. Passo a passo
 
+> **Dica de Ouro:** Para criar arquivos no terminal do Ubuntu, usaremos o editor de texto `nano`. 
+> **Para salvar e sair do `nano`:** Aperte `Ctrl + O` (letra O), aperte `Enter` para confirmar, e depois `Ctrl + X` para sair.
+> Se preferir, no passo 5.1 você pode digitar `code .` para abrir o VS Code e criar os arquivos por lá.
+
 ### 5.1. Criar a estrutura de pastas
 
-No terminal (WSL2/Ubuntu):
+No terminal do Ubuntu, digite os comandos abaixo (um por vez, apertando Enter):
 
 ```bash
-cd ~/projeto-a3
-mkdir -p api
-cd api
+# Cria a pasta do projeto e a subpasta da API
+mkdir -p ~/projeto-a3/api
+
+# Entra na pasta da API
+cd ~/projeto-a3/api
 ```
 
 ### 5.2. Criar o arquivo `requirements.txt`
 
-Crie `api/requirements.txt` com:
-
+Dentro da pasta `api/`, digite:
+```bash
+nano requirements.txt
+```
+A tela vai mudar. Cole o código abaixo dentro dela:
 ```
 fastapi==0.104.1
 uvicorn==0.24.0
 psutil==5.9.6
 ```
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 
 **Explicação:**
 - `fastapi` → framework da API.
@@ -158,7 +168,11 @@ psutil==5.9.6
 
 ### 5.3. Criar o arquivo `main.py`
 
-Crie `api/main.py` com:
+Ainda na pasta `api/`, digite:
+```bash
+nano main.py
+```
+Cole o código abaixo dentro do editor:
 
 ```python
 from fastapi import FastAPI, HTTPException
@@ -222,6 +236,8 @@ def terminate_process(pid: int, force: bool = False):
         raise HTTPException(status_code=403, detail="Acesso negado")
 ```
 
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
+
 **Explicação linha por linha:**
 
 - `from fastapi import FastAPI, HTTPException` → importa o framework e a classe de erro HTTP.
@@ -245,22 +261,25 @@ def terminate_process(pid: int, force: bool = False):
 
 ### 5.4. Testar localmente
 
-Dentro da pasta `api/`:
+Dentro da pasta `api/`, digite os comandos abaixo (um por vez):
 
 ```bash
+# Cria o ambiente virtual (venv)
 python3 -m venv venv
+
+# Ativa o ambiente virtual
 source venv/bin/activate
+
+# Instala as dependências
 pip install -r requirements.txt
+
+# Inicia a API
 uvicorn main:app --reload
 ```
 
-Você deve ver:
-```
-INFO:     Uvicorn running on http://127.0.0.1:8000
-INFO:     Application startup complete.
-```
+Você verá a mensagem: `INFO: Uvicorn running on http://127.0.0.1:8000`. **Deixe este terminal aberto e rodando.**
 
-**Em outro terminal**, teste os endpoints:
+**Abra um NOVO terminal do Ubuntu** (atalho: `Ctrl + Shift + T` ou clique no ícone de `+` do terminal) e digite os comandos para testar:
 
 ```bash
 curl http://127.0.0.1:8000/processes
@@ -269,17 +288,17 @@ curl -X POST "http://127.0.0.1:8000/processes/start?command=sleep 60"
 curl -X DELETE "http://127.0.0.1:8000/processes/<PID>"
 ```
 
-**Abra no navegador:**
-```
-http://127.0.0.1:8000/docs
-```
+**Abra no navegador do Windows:** `http://127.0.0.1:8000/docs`
 
-**Para parar a API:** `Ctrl+C` no terminal.
+**Para parar a API:** volte ao terminal onde ela está rodando e aperte `Ctrl+C`.
 
 ### 5.5. Criar o `Dockerfile`
 
-Crie `api/Dockerfile` com:
-
+Volte para o terminal da pasta `api/` e digite:
+```bash
+nano Dockerfile
+```
+Cole o código abaixo dentro do editor:
 ```dockerfile
 FROM python:3.11-slim
 WORKDIR /app
@@ -289,6 +308,7 @@ COPY main.py .
 EXPOSE 8000
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 
 **Explicação linha por linha:**
 
@@ -305,8 +325,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 > ⚠️ **A Tarefa 3 depende deste passo.** Avise no grupo assim que a imagem estiver pronta.
 
-Dentro da pasta `api/`:
-
+Ainda na pasta `api/`, execute:
 ```bash
 docker build -t process-api:latest .
 ```
@@ -316,13 +335,14 @@ docker build -t process-api:latest .
 - `-t process-api:latest` → nome `process-api`, tag `latest`.
 - `.` → usa o Dockerfile da pasta atual.
 
-Verifique:
+Verifique se a imagem foi criada:
 ```bash
 docker images | grep process-api
 ```
 
 ### 5.7. Testar o container
 
+Rode o container em background:
 ```bash
 docker run -d -p 8000:8000 --name api-teste process-api:latest
 ```
@@ -333,23 +353,23 @@ docker run -d -p 8000:8000 --name api-teste process-api:latest
 - `--name api-teste` → nome do container.
 - `process-api:latest` → imagem usada.
 
-Verifique:
+Verifique se está rodando:
 ```bash
 docker ps
 ```
 
-Teste:
+Teste novamente (pode ser no mesmo terminal):
 ```bash
 curl http://127.0.0.1:8000/processes
-curl http://127.0.0.1:8000/docs
 ```
+*(Você também pode acessar `http://127.0.0.1:8000/docs` no navegador).*
 
-Ver logs:
+Para ver os logs do container:
 ```bash
 docker logs api-teste
 ```
 
-Parar e remover:
+Ao terminar os testes, pare e remova o container:
 ```bash
 docker stop api-teste
 docker rm api-teste
@@ -368,6 +388,7 @@ Salve em `docs/evidencias/tarefa-1/`.
 
 ### 5.9. Subir para o GitHub
 
+Volte para a pasta raiz do projeto e suba os arquivos:
 ```bash
 cd ~/projeto-a3
 git status
