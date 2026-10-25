@@ -209,6 +209,11 @@ Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 - `CMD ["crond", "-f", "-l", "8"]` → inicia o cron em **foreground** (`-f`).
   - `-f` → foreground.
   - `-l 8` → nível de log 8 (detalhado).
+ 
+> ⚠️ **Observação sobre alteração no código:**
+> A linha `RUN apk add --no-cache dcron` foi removida do Dockerfile do Cron. 
+> **Motivo:** o pacote `dcron` apresenta um erro de permissão (`setpgid: Operation not permitted`) ao rodar dentro de containers Docker modernos, o que fazia o container morrer logo após iniciar. 
+> **Solução:** passamos a usar o cron nativo que já vem instalado na imagem Alpine (via BusyBox), alterando o `CMD` para `["busybox", "crond", "-f", "-l", "8", "-c", "/etc/crontabs"]`. O funcionamento é exatamente o mesmo e resolve o problema de compatibilidade.
 
 ### 5.5. Criar o arquivo crontab (opcional)
 
