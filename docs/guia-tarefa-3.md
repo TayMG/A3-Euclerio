@@ -144,22 +144,32 @@ No seu projeto, você vai usar **NodePort** para acessar a API de fora do cluste
 
 ## 5. Passo a passo
 
+> **Dica de Ouro:** Assim como nas guias anteriores, usaremos o editor `nano` para criar os arquivos YAML. 
+> **Para salvar e sair do `nano`:** Aperte `Ctrl + O` (letra O), aperte `Enter` para confirmar, e depois `Ctrl + X` para sair.
+> Se preferir, você pode digitar `code .` para abrir o VS Code e criar os arquivos por lá.
+
 ### 5.1. Criar a estrutura de pastas
 
+No terminal (WSL2/Ubuntu), crie a pasta do Kubernetes e entre nela:
 ```bash
-cd ~/projeto-a3
-mkdir -p k8s
-cd k8s
+mkdir -p ~/projeto-a3/k8s
+cd ~/projeto-a3/k8s
 ```
 
 ### 5.2. Criar o arquivo `namespace.yaml`
 
+Abra o editor de texto:
+```bash
+nano namespace.yaml
+```
+Cole o código abaixo dentro do editor:
 ```yaml
 apiVersion: v1
 kind: Namespace
 metadata:
   name: daemon-lab
 ```
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 
 **Explicação:**
 - `apiVersion: v1` → versão da API do Kubernetes.
@@ -168,7 +178,11 @@ metadata:
 
 ### 5.3. Criar os arquivos de Deployment e Service
 
-**`api-deployment.yaml`:**
+**1. Criar o `api-deployment.yaml`:**
+```bash
+nano api-deployment.yaml
+```
+Cole:
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -193,17 +207,13 @@ spec:
         ports:
         - containerPort: 8000
 ```
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 
-**Explicação:**
-- `replicas: 2` → queremos 2 Pods rodando.
-- `selector.matchLabels.app: process-api` → o Deployment gerencia Pods com esse label.
-- `template.metadata.labels.app: process-api` → o label dos Pods criados.
-- `hostPID: true` → compartilha o namespace de PID do host.
-- `image: process-api:latest` → imagem da API.
-- `imagePullPolicy: Never` → use a imagem local (não baixe do Docker Hub).
-- `containerPort: 8000` → porta que o container expõe.
-
-**`api-service.yaml`:**
+**2. Criar o `api-service.yaml`:**
+```bash
+nano api-service.yaml
+```
+Cole:
 ```yaml
 apiVersion: v1
 kind: Service
@@ -219,15 +229,13 @@ spec:
     targetPort: 8000
     nodePort: 30080
 ```
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 
-**Explicação:**
-- `type: NodePort` → expõe o serviço em uma porta do nó.
-- `selector.app: process-api` → encontra os Pods com esse label.
-- `port: 8000` → porta do Service.
-- `targetPort: 8000` → porta do container.
-- `nodePort: 30080` → porta exposta no nó (30000-32767).
-
-**`nginx-deployment.yaml`:**
+**3. Criar o `nginx-deployment.yaml`:**
+```bash
+nano nginx-deployment.yaml
+```
+Cole:
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -251,8 +259,13 @@ spec:
         ports:
         - containerPort: 80
 ```
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 
-**`cron-deployment.yaml`:**
+**4. Criar o `cron-deployment.yaml`:**
+```bash
+nano cron-deployment.yaml
+```
+Cole:
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -274,9 +287,21 @@ spec:
         image: cron-daemon:latest
         imagePullPolicy: Never
 ```
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
+
+**Explicação dos arquivos acima:**
+- `replicas: 2` → queremos 2 Pods rodando.
+- `selector.matchLabels` e `template.metadata.labels` → garantem que o Deployment encontre os Pods corretos.
+- `hostPID: true` → compartilha o namespace de PID do host (para a API ver os processos).
+- `imagePullPolicy: Never` → usa a imagem local que está no Minikube (não baixa do Docker Hub).
+- `nodePort: 30080` → porta exposta no host para acessar a API.
 
 ### 5.4. Criar o arquivo `hpa.yaml`
 
+```bash
+nano hpa.yaml
+```
+Cole:
 ```yaml
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -298,6 +323,7 @@ spec:
         type: Utilization
         averageUtilization: 50
 ```
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 
 **Explicação:**
 - `scaleTargetRef` → qual Deployment o HPA vai escalar.
@@ -313,13 +339,14 @@ spec:
 - Troque `process-api:latest` por `nginx:latest` no `api-deployment.yaml`.
 - Troque `nginx-cron:latest` por `nginx:latest` no `nginx-deployment.yaml`.
 - Troque `cron-daemon:latest` por `alpine:latest` no `cron-deployment.yaml`.
-
-Quando as imagens reais chegarem, troque de volta.
+*(Quando as imagens reais chegarem, basta editar os arquivos de volta e aplicar novamente).*
 
 **Passo 1: Iniciar o Minikube**
+Certifique-se de que o Docker Desktop está aberto. Depois, rode:
 ```bash
 minikube start --driver=docker
 ```
+*(Espere a mensagem de sucesso e o ícone de "Done!").*
 
 **Passo 2: Carregar as imagens no Minikube**
 ```bash
@@ -338,9 +365,13 @@ kubectl apply -f nginx-deployment.yaml
 kubectl apply -f cron-deployment.yaml
 ```
 
-**Passo 4: Verificar**
+**Passo 4: Verificar se os Pods subiram**
 ```bash
 kubectl get pods -n daemon-lab
+```
+*(Espere todos ficarem com o status `Running`).*
+
+```bash
 kubectl get svc -n daemon-lab
 kubectl get deployments -n daemon-lab
 ```
@@ -349,7 +380,6 @@ kubectl get deployments -n daemon-lab
 ```bash
 curl http://$(minikube ip):30080/processes
 ```
-
 Ou:
 ```bash
 minikube service api-service -n daemon-lab
@@ -357,28 +387,27 @@ minikube service api-service -n daemon-lab
 
 ### 5.6. Demonstrar self-healing
 
-**Passo 1:** Ver os Pods rodando
+**Passo 1:** Ver os Pods rodando e copie o nome de um deles (ex: `api-deployment-abcde-12345`)
 ```bash
 kubectl get pods -n daemon-lab
 ```
 
-**Passo 2:** Deletar um Pod da API
+**Passo 2:** Deletar o Pod da API que você copiou
 ```bash
-kubectl delete pod <nome-de-um-pod-api> -n daemon-lab
+kubectl delete pod <nome-do-pod-api> -n daemon-lab
 ```
 
 **Passo 3:** Observar a recriação automática
 ```bash
 kubectl get pods -n daemon-lab -w
 ```
+*(Você verá um novo Pod sendo criado em segundos. Aperte `Ctrl+C` para parar de assistir).*
 
-Você vai ver um novo Pod sendo criado em segundos.
-
-**Passo 4:** Gravar um vídeo dessa demonstração.
+**Passo 4:** Grave um vídeo dessa demonstração.
 
 ### 5.7. Demonstrar scaling
 
-**Passo 1:** Habilitar o metrics-server
+**Passo 1:** Habilitar o metrics-server (necessário para o HPA funcionar)
 ```bash
 minikube addons enable metrics-server
 ```
@@ -388,29 +417,33 @@ minikube addons enable metrics-server
 kubectl apply -f hpa.yaml
 ```
 
-**Passo 3:** Ver o HPA (pode demorar 1-2 min para mostrar métricas)
+**Passo 3:** Ver o HPA (pode demorar 1 a 2 minutos para o status sair de `<unknown>`)
 ```bash
 kubectl get hpa -n daemon-lab -w
 ```
 
-**Passo 4:** Gerar carga na API (em outro terminal)
+**Passo 4:** Abra um **novo terminal** e gere carga na API:
 ```bash
 while true; do curl http://$(minikube ip):30080/processes; done
 ```
 
-**Passo 5:** Observar o escalonamento
+**Passo 5:** Volte ao terminal anterior e observe o escalonamento
 ```bash
 kubectl get pods -n daemon-lab -w
 ```
+*(Você verá novas réplicas da API sendo criadas).*
 
-Você vai ver o número de réplicas da API aumentando.
+**Passo 6:** Pare a carga (aperte `Ctrl+C` no terminal que está gerando os `curls`).
+Depois de alguns minutos, o HPA vai reduzir as réplicas de volta automaticamente.
 
-**Passo 6:** Parar a carga (Ctrl+C no terminal que está gerando carga).
-Depois de alguns minutos, o HPA vai reduzir as réplicas de volta.
-
-**Passo 7:** Gravar um vídeo dessa demonstração.
+**Passo 7:** Grave um vídeo dessa demonstração.
 
 ### 5.8. Tirar prints
+
+Primeiro, crie a pasta para salvar as evidências:
+```bash
+mkdir -p ~/projeto-a3/docs/evidencias/tarefa-3
+```
 
 Tire prints de:
 1. `kubectl get pods -n daemon-lab` (Pods rodando)
@@ -424,13 +457,19 @@ Salve em `docs/evidencias/tarefa-3/`.
 
 ### 5.9. Documentar resultados
 
-Crie uma tabela com os resultados. Exemplo:
-
+Abra o editor para criar um arquivo de anotações:
+```bash
+nano resultados.md
+```
+Crie uma tabela com os resultados observados. Exemplo:
+```markdown
 | Métrica | Antes | Depois |
 |---------|-------|--------|
 | Réplicas da API | 2 | 5 |
 | Tempo de recriação do Pod | — | 15s |
 | Uso de CPU durante carga | 20% | 85% |
+```
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 
 Esses dados vão para o artigo (Tarefa 4).
 
