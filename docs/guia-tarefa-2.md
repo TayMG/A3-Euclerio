@@ -127,7 +127,7 @@ mkdir -p ~/projeto-a3/nginx ~/projeto-a3/cron
 cd ~/projeto-a3
 ```
 
-### 5.2. Criar o Dockerfile do Nginx
+### 5.2. Criar o Dockerfile do Nginx (Versão Básica)
 
 Entre na pasta do Nginx e abra o editor de texto:
 ```bash
@@ -167,7 +167,7 @@ Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 
 ### 5.2.1. (Opcional) Criar um site personalizado que mostra o log do Cron
 
-Se você quiser impressionar na apresentação, podemos fazer o Nginx exibir uma página com o nome do projeto e o log do cron em tempo real.
+Se você quiser impressionar na apresentação, podemos fazer o Nginx exibir uma página com o nome do projeto e o log do cron em tempo real. *(Se você fizer isso, substitua o Dockerfile do passo 5.2 pelo que está aqui no item 2)*.
 
 **1. Criar a pasta e o arquivo HTML:**
 Ainda dentro da pasta `nginx/`, crie a pasta html e o arquivo index:
@@ -258,7 +258,7 @@ nginx -g "daemon off;"
 ```
 Salve e saia (`Ctrl + O`, `Enter`, `Ctrl + X`).
 
-Se você fizer isso, precisará alterar o Dockerfile para copiar esse arquivo (substituindo as linhas de `echo` por `COPY entrypoint.sh /entrypoint.sh` e `RUN chmod +x /entrypoint.sh`). **Recomendação:** para facilitar, ignore o passo 5.3 e apenas use o Dockerfile do passo 5.2.
+Se você fizer isso, precisará alterar o Dockerfile para copiar esse arquivo (substituindo as linhas de `echo` por `COPY entrypoint.sh /entrypoint.sh` e `RUN chmod +x /entrypoint.sh`). **Recomendação:** para facilitar, ignore o passo 5.3 e apenas use o Dockerfile do passo 5.2 ou 5.2.1.
 
 ### 5.4. Criar o Dockerfile do Cron separado
 
@@ -347,11 +347,15 @@ docker ps
 ```
 Abra no navegador do Windows: `http://127.0.0.1:8080` (deve aparecer a página "Welcome to nginx!" ou o site personalizado se você fez o passo 5.2.1).
 
-Para ver se o cron do Nginx está funcionando (espere 1 minuto e rode):
-```bash
-docker exec nginx-teste cat /var/log/cron.log
-```
-*(Se você fez o passo 5.2.1, o log estará em `/usr/share/nginx/html/cron.log`)*.
+Para ver se o cron do Nginx está funcionando (espere 1 minuto e rode o comando correspondente à sua versão):
+*   **Se você fez a Versão Básica (5.2):**
+    ```bash
+    docker exec nginx-teste cat /var/log/cron.log
+    ```
+*   **Se você fez o Site Personalizado (5.2.1):** O log fica na pasta do site, então o comando é:
+    ```bash
+    docker exec nginx-teste cat /usr/share/nginx/html/cron.log
+    ```
 
 **2. Testar o container do Cron separado:**
 ```bash
@@ -385,8 +389,9 @@ mkdir -p ~/projeto-a3/docs/evidencias/tarefa-2
 Tire **3 prints** para o artigo e a apresentação:
 
 1. `docker ps` mostrando os containers rodando.
-2. `docker logs cron-teste` mostrando a tarefa executando.
+2. `docker logs cron-teste` (ou `cat`) mostrando a tarefa executando.
 3. `docker images` mostrando as imagens criadas.
+*   **(Opcional)** Se você fez o **Site Personalizado (5.2.1)**, tire um print também da tela do navegador mostrando o site e o log atualizando.
 
 Salve em `docs/evidencias/tarefa-2/`.
 
@@ -412,7 +417,7 @@ Depois, no GitHub:
 
 ## 6. Código completo (resumo dos arquivos)
 
-### `nginx/Dockerfile` (Versão Básica)
+### `nginx/Dockerfile` (Versão Básica - Passo 5.2)
 ```dockerfile
 FROM nginx:alpine
 
@@ -481,6 +486,7 @@ CMD ["busybox", "crond", "-f", "-l", "8", "-c", "/etc/crontabs"]
 | `permission denied` no docker | Usuário não está no grupo docker | `sudo usermod -aG docker $USER` e reiniciar |
 | Porta 80 já em uso | Outro serviço usando a porta | Usar `-p 8080:80` no `docker run` |
 | Cron não executa a tarefa | Formato do crontab errado | Verificar o formato `* * * * * comando` |
+| `cat: can't open '/var/log/cron.log'` | Tentando ler o log básico, mas você fez o site personalizado (ou vice-versa) | Se fez o passo 5.2.1, use o caminho `/usr/share/nginx/html/cron.log` |
 
 ---
 
