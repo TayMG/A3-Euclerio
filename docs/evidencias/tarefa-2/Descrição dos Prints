@@ -1,0 +1,7 @@
+# Descrição dos Prints
+
+1. **imagens-criadas.png:** Mostra o comando `docker images`, comprovando que as imagens `nginx-cron` e `cron-daemon` foram construídas com sucesso.
+2. **verificandoDockerNginx.png:** Mostra o `docker ps`, comprovando que o container do Nginx está em execução e expondo a porta 8080.
+3. **teste-conteinerNginx.png:** Mostra o terminal executando o `cat` no arquivo de log, comprovando que o cron embutido no Nginx está escrevendo as tarefas no arquivo.
+4. **sitedemostracao.png:** Interface web acessível via navegador. Mostra o site personalizado do projeto exibindo o log do cron atualizando em tempo real (prova visual da integração entre o servidor web e o daemon de agendamento).
+5. **TarefaAgendadaCron.png:** Mostra o log do container de Cron separado (`cron-task.log`), comprovando que o segundo daemon agendador está rodando isoladamente e executando as tarefas por minuto.
