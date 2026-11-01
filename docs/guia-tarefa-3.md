@@ -261,7 +261,29 @@ spec:
 ```
 Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 
-**4. Criar o `cron-deployment.yaml`:**
+**4. Criar o `nginx-service.yaml`:**
+```bash
+nano nginx-service.yaml
+```
+Cole:
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: daemon-lab
+spec:
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30081
+```
+Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
+
+**5. Criar o `cron-deployment.yaml`:**
 ```bash
 nano cron-deployment.yaml
 ```
@@ -294,7 +316,7 @@ Salve e saia: `Ctrl + O`, `Enter`, `Ctrl + X`.
 - `selector.matchLabels` e `template.metadata.labels` → garantem que o Deployment encontre os Pods corretos.
 - `hostPID: true` → compartilha o namespace de PID do host (para a API ver os processos).
 - `imagePullPolicy: Never` → usa a imagem local que está no Minikube (não baixa do Docker Hub).
-- `nodePort: 30080` → porta exposta no host para acessar a API.
+- `nodePort: 30080` e `30081` → portas expostas no host para acessar a API e o Nginx.
 
 ### 5.4. Criar o arquivo `hpa.yaml`
 
@@ -362,6 +384,7 @@ kubectl apply -f namespace.yaml
 kubectl apply -f api-deployment.yaml
 kubectl apply -f api-service.yaml
 kubectl apply -f nginx-deployment.yaml
+kubectl apply -f nginx-service.yaml
 kubectl apply -f cron-deployment.yaml
 ```
 
@@ -447,7 +470,7 @@ mkdir -p ~/projeto-a3/docs/evidencias/tarefa-3
 
 Tire prints de:
 1. `kubectl get pods -n daemon-lab` (Pods rodando)
-2. `kubectl get svc -n daemon-lab` (Service)
+2. `kubectl get svc -n daemon-lab` (Services)
 3. `kubectl get hpa -n daemon-lab` (HPA)
 4. Pod sendo recriado após self-healing
 5. Réplicas aumentando após scaling
@@ -571,6 +594,23 @@ spec:
         imagePullPolicy: Never
         ports:
         - containerPort: 80
+```
+
+### `k8s/nginx-service.yaml`
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: daemon-lab
+spec:
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30081
 ```
 
 ### `k8s/cron-deployment.yaml`
