@@ -10,9 +10,9 @@ As imagens serão construídas com estes nomes **exatos**. Ninguém pode mudar s
 
 | Imagem | Nome completo | Quem constrói | Dockerfile |
 |--------|---------------|---------------|------------|
-| API | `process-api:latest` | tarefa 1 | `api/Dockerfile` |
-| Nginx + Cron | `nginx-cron:latest` | tarefa 2 | `nginx/Dockerfile` |
-| Cron separado | `cron-daemon:latest` | tarefa 2 | `cron/Dockerfile` |
+| API | `process-api:latest` | Tarefa 1 | `api/Dockerfile` |
+| Nginx + Cron | `nginx-cron:latest` | Tarefa 2 | `nginx/Dockerfile` |
+| Cron separado | `cron-daemon:latest` | Tarefa 2 | `cron/Dockerfile` |
 
 **Regra:** todos os YAMLs do Kubernetes devem usar exatamente esses nomes, com `imagePullPolicy: Never`.
 
@@ -115,41 +115,41 @@ http://127.0.0.1:8000/docs
 
 ```
 projeto-a3/
-├── api/                    (tarefa 1)
+├── api/                    (Tarefa 1)
 │   ├── main.py
 │   ├── requirements.txt
 │   └── Dockerfile
-├── nginx/                  (tarefa 2)
-│   ├── Dockerfile
-│   └── entrypoint.sh
-├── cron/                   (tarefa 2)
-│   ├── Dockerfile
-│   └── crontab
-├── k8s/                    (tarefa 3)
+├── nginx/                  (Tarefa 2)
+│   ├── html/
+│   │   └── index.html
+│   └── Dockerfile
+├── cron/                   (Tarefa 2)
+│   └── Dockerfile
+├── k8s/                    (Tarefa 3)
 │   ├── namespace.yaml
 │   ├── api-deployment.yaml
 │   ├── api-service.yaml
 │   ├── nginx-deployment.yaml
+│   ├── nginx-service.yaml
 │   ├── cron-deployment.yaml
 │   └── hpa.yaml
-├── docs/                   (tarefa 4)
+├── docs/                   (Tarefa 4)
 │   ├── interfaces.md
 │   ├── tarefas.md
 │   ├── guia-tarefa-1.md
 │   ├── guia-tarefa-2.md
 │   ├── guia-tarefa-3.md
 │   ├── guia-tarefa-4.md
-│   ├── artigo.md
-│   ├── slides.pdf
+│   ├── guia-integracao.md
+│   ├── artigo.md           (A ser criado pela Tarefa 4)
+│   ├── slides.pdf          (A ser criado pela Tarefa 4)
 │   └── evidencias/
 │       ├── tarefa-1/
 │       ├── tarefa-2/
 │       ├── tarefa-3/
 │       └── tarefa-4/
-├── scripts/                (todos)
-│   ├── build.sh
-│   └── deploy.sh
-└── README.md               (tarefa 4)
+├── .gitignore
+└── README.md               (Tarefa 4)
 ```
 
 **Regra:** cada tarefa só mexe na **sua** pasta. Se precisar mexer na pasta de outro, avisar antes.
@@ -166,10 +166,10 @@ projeto-a3/
 
 | Branch | Responsável |
 |--------|-------------|
-| `feature/api` | tarefa 1 |
-| `feature/containers` | tarefa 2 |
-| `feature/k8s` | tarefa 3 |
-| `docs/artigo` | tarefa 4 |
+| `feature/api` | Tarefa 1 |
+| `feature/containers` | Tarefa 2 |
+| `feature/k8s` | Tarefa 3 |
+| `docs/artigo` | Tarefa 4 |
 
 ### Fluxo
 
@@ -178,16 +178,6 @@ projeto-a3/
 3. Outro integrante revisa e faz merge.
 4. Uma vez por semana, todos fazem `git pull` da `main`.
 5. **Nunca** commitar direto na `main`.
-
-### Comandos básicos
-
-```bash
-git checkout -b feature/api     # criar branch
-git add .                        # adicionar arquivos
-git commit -m "mensagem"         # commitar
-git push origin feature/api      # enviar para GitHub
-git pull origin main             # atualizar da main
-```
 
 ---
 
@@ -216,6 +206,7 @@ kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/api-deployment.yaml
 kubectl apply -f k8s/api-service.yaml
 kubectl apply -f k8s/nginx-deployment.yaml
+kubectl apply -f k8s/nginx-service.yaml
 kubectl apply -f k8s/cron-deployment.yaml
 kubectl apply -f k8s/hpa.yaml
 ```
@@ -243,36 +234,37 @@ minikube start --driver=docker
 > A divisão de tarefas está detalhada em `docs/tarefas.md`.
 > Cada tarefa deve seguir a sua guia (`docs/guia-tarefa-X.md`).
 
-### tarefa 1 — API FastAPI + psutil
+### Tarefa 1 — API FastAPI + psutil
 
 - **Guia completa:** `docs/guia-tarefa-1.md`
-- **Entregáveis:** `api/main.py`, `api/requirements.txt`, `api/Dockerfile`, prints da API funcionando
+- **Entregáveis:** `api/main.py`, `api/requirements.txt`, `api/Dockerfile`, prints da API funcionando.
 - **Branch:** `feature/api`
 
-### tarefa 2 — Containers Nginx e Cron
+### Tarefa 2 — Containers Nginx e Cron
 
 - **Guia completa:** `docs/guia-tarefa-2.md`
-- **Entregáveis:** `nginx/Dockerfile`, `nginx/entrypoint.sh`, `cron/Dockerfile`, prints dos containers rodando
+- **Entregáveis:** `nginx/Dockerfile`, `nginx/html/index.html`, `cron/Dockerfile`, prints dos containers rodando.
 - **Branch:** `feature/containers`
 
-### tarefa 3 — Kubernetes (YAMLs + deploy + self-healing + scaling)
+### Tarefa 3 — Kubernetes (YAMLs + deploy + self-healing + scaling)
 
 - **Guia completa:** `docs/guia-tarefa-3.md`
-- **Entregáveis:** todos os `k8s/*.yaml`, prints do `kubectl get pods/svc/hpa`, vídeo do self-healing e scaling
+- **Entregáveis:** todos os `k8s/*.yaml`, prints do `kubectl get pods/svc/hpa`, vídeo do self-healing e scaling.
 - **Branch:** `feature/k8s`
 
-### tarefa 4 — Documentação + Integração + Demonstração
+### Tarefa 4 — Documentação + Integração + Demonstração
 
 - **Guia completa:** `docs/guia-tarefa-4.md`
-- **Entregáveis:** `docs/artigo.md`, `docs/slides.pdf`, `README.md`, roteiro de apresentação
+- **Entregáveis:** `docs/artigo.md`, `docs/slides.pdf`, `README.md`, roteiro de apresentação.
 - **Branch:** `docs/artigo`
 
 ---
 
-## 11. Regras
+## 10. Regras
 
 1. **Cada um na sua branch.** Ninguém mexe na branch do outro.
 2. **Pull Request sempre.** Nada vai direto para a `main`.
 3. **Integração semanal.** Toda semana, uma reunião rápida para alinhar.
 4. **Documentar tudo.** Prints, vídeos, anotações. Vira o artigo no final.
 5. **Avisar se mudar algo.** Se precisar mudar uma interface, avisar **todo** o grupo antes.
+6. **Segurança:** O uso de `hostPID: true` é intencional para o escopo do projeto (ler processos do nó), mas deve ser citado como limitação de segurança no artigo.
