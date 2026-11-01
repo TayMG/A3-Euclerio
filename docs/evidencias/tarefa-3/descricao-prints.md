@@ -8,7 +8,7 @@
 | Arquivo | O que comprova |
 | :--- | :--- |
 | `5pods.png` | Mostra os 5 Pods iniciais rodando (`Running`): 2 da API, 2 do Nginx e 1 do Cron, comprovando que o deploy base no namespace `daemon-lab` foi bem-sucedido. |
-| `ProcessManagerAPI.png` / `ProcessManagerAPI-terminal....png` | Mostra a interface do Swagger (`/docs`) da API sendo acessada via navegador/túnel, comprovando que o Service (NodePort) do Kubernetes está expondo a aplicação corretamente. |
+| `ProcessManagerAPI.png` / `ProcessManagerAPI-terminal.png` | Mostra a interface do Swagger (`/docs`) da API sendo acessada via navegador/túnel, comprovando que o Service (NodePort) do Kubernetes está expondo a aplicação corretamente. |
 
 ---
 
