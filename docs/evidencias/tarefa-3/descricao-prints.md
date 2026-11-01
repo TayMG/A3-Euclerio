@@ -1,6 +1,5 @@
 # Evidências da Tarefa 3 — Kubernetes
 
-
 ---
 
 ## 1. Infraestrutura e Deploy Base
@@ -9,6 +8,8 @@
 | :--- | :--- |
 | `5pods.png` | Mostra os 5 Pods iniciais rodando (`Running`): 2 da API, 2 do Nginx e 1 do Cron, comprovando que o deploy base no namespace `daemon-lab` foi bem-sucedido. |
 | `ProcessManagerAPI.png` / `ProcessManagerAPI-terminal.png` | Mostra a interface do Swagger (`/docs`) da API sendo acessada via navegador/túnel, comprovando que o Service (NodePort) do Kubernetes está expondo a aplicação corretamente. |
+| `nginx-k8s.png` | Mostra o site do Nginx rodando com o log do cron atualizando. **Diferença crucial:** Diferente do print da Tarefa 2 (que rodava via Docker local), este comprova o Nginx rodando como um Pod dentro do Kubernetes. |
+| `nginx-k8s-terminal.png` | Mostra o comando `minikube service nginx-service` criando o túnel e expondo a porta 30081. Comprova a orquestração do segundo daemon (Nginx) via NodePort no cluster. |
 
 ---
 
