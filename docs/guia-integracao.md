@@ -91,6 +91,7 @@ kubectl apply -f namespace.yaml
 kubectl apply -f api-deployment.yaml
 kubectl apply -f api-service.yaml
 kubectl apply -f nginx-deployment.yaml
+kubectl apply -f nginx-service.yaml
 kubectl apply -f cron-deployment.yaml
 ```
 
