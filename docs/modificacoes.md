@@ -775,11 +775,9 @@ kubectl delete -f k8s/cron-pvc.yaml
 > # Substitui o crontab dentro do pod para escrever no volume
 > kubectl exec -it deploy/cron-deployment -n daemon-lab -- sh -c \
 >   "echo '* * * * * date >> /data/cron-task.log' > /etc/crontabs/root"
-> # Reinicia o pod para o crond reler o crontab (volta à imagem original)
-> kubectl rollout restart deployment/cron-deployment -n daemon-lab
 > ```
 >
-> O restart repõe o crontab da imagem; para uma alteração permanente, edite `cron/crontab` e reconstrua.
+> O `crond` relê `/etc/crontabs` automaticamente. **Não reinicie o pod**, porque o restart repõe o crontab da imagem. Para uma alteração permanente, edite a linha do crontab em `cron/Dockerfile` e reconstrua (Parte 4).
 
 ---
 
