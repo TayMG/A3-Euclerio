@@ -2,6 +2,8 @@
 # Guia de Comandos — Apresentação A3 (Tema 1)
 
 > **Pré-requisitos:** Docker Desktop aberto e WSL2/Ubuntu configurado. O terminal deve estar na raiz do projeto (`A3-Euclerio` ou `projeto-a3`).
+>
+> **Alinhamento com `docs/interfaces.md`:** este guia usa os nomes exatos definidos nas interfaces (imagens, namespace, portas, labels, endpoints). O projeto usa `imagePullPolicy: Never` em todos os YAMLs.
 
 ---
 
@@ -17,6 +19,30 @@ docker ps
 ```
 
 Se o `minikube status` não mostrar `Running`, execute `minikube start --driver=docker`.
+
+### 0.1. Confirmar nomes e valores exatos (evita falhas ao vivo)
+
+O guia assume nomes fixos. Confirme-os **antes** de apresentar:
+
+```bash
+# Nome do namespace
+kubectl get ns | grep daemon-lab
+
+# Nomes dos Deployments
+kubectl get deploy -n daemon-lab -o custom-columns=NAME:.metadata.name
+
+# Nome do container dentro do Deployment da API (usado na secção 6.5)
+kubectl get deploy api-deployment -n daemon-lab -o jsonpath='{.spec.template.spec.containers[*].name}'
+
+# Nome do HPA e valores originais (usados nas secções 6.1, 6.2 e 6.9)
+kubectl get hpa -n daemon-lab
+kubectl get hpa api-hpa -n daemon-lab -o yaml | grep -E "name:|minReplicas|averageUtilization|targetCPUUtilizationPercentage|apiVersion"
+
+# Labels reais dos pods (usados na secção 5.1)
+kubectl get pods -n daemon-lab --show-labels
+```
+
+Se algum valor diferir do que o guia assume, ajuste o comando correspondente antes de apresentar.
 
 ---
 
@@ -36,7 +62,7 @@ Verificação rápida:
 docker images | grep -E "process-api|nginx-cron|cron-daemon"
 ```
 
-> **Nota sobre `imagePullPolicy`:** se alterar o código e reconstruir com `:latest`, o Minikube pode continuar a usar a imagem antiga (a tag `:latest` não força pull). Após reconstruir, recarregue a imagem e reinicie os pods:
+> **Nota sobre `imagePullPolicy: Never`:** os YAMLs do projeto usam `imagePullPolicy: Never` (definido nas interfaces). Isto significa que o Minikube **não tenta fazer pull** da imagem — se ela não estiver carregada no cluster, o pod fica em `ErrImageNeverPull`. Após qualquer rebuild, é **obrigatório** recarregar a imagem:
 >
 > ```bash
 > minikube image load process-api:latest
@@ -53,7 +79,7 @@ Iniciar o cluster, carregar as imagens e aplicar os manifestos:
 # Iniciar o cluster
 minikube start --driver=docker
 
-# Injetar as imagens locais no Minikube
+# Injetar as imagens locais no Minikube (obrigatório por causa do imagePullPolicy: Never)
 minikube image load process-api:latest
 minikube image load nginx-cron:latest
 minikube image load cron-daemon:latest
@@ -95,7 +121,7 @@ kubectl wait --for=condition=available deployment/cron-deployment  -n daemon-lab
 
 ### 2.3. Criar uma imagem "v2" para o demo de rollback
 
-O demo da secção 6.5 faz `kubectl set image ... process-api:v2`. Essa imagem tem de existir no Minikube, senão o pod fica em `ImagePullBackOff`.
+O demo da secção 6.5 faz `kubectl set image ... <container>=process-api:v2`. Essa imagem tem de existir no Minikube, senão o pod fica em `ErrImageNeverPull`.
 
 ```bash
 # Criar uma "v2" a partir da imagem atual (apenas para o demo de rollback)
@@ -145,13 +171,31 @@ minikube service nginx-service -n daemon-lab
 ```
 
 **Teste rápido no terminal (sem navegador):**
-Substitua `<PORTA_DO_TUNEL>` pela porta gerada no comando acima (ex: `45153`).
+Substitua `<PORTA>` pela porta gerada no comando acima (ex: `45153`).
+
+### 4.1. Endpoints da API (definidos nas interfaces)
 
 ```bash
-# Listar processos (teste do hostPID)
-curl http://127.0.0.1:<PORTA_DO_TUNEL>/processes
+# Listar todos os processos
+curl http://127.0.0.1:<PORTA>/processes
 
-# Ler o ficheiro do cron dentro do Pod do Nginx
+# Inspecionar um processo pelo PID
+curl http://127.0.0.1:<PORTA>/processes/1
+
+# Iniciar um novo processo (parâmetro command)
+curl -X POST "http://127.0.0.1:<PORTA>/processes/start?command=sleep%2060"
+
+# Encerrar um processo pelo PID (parâmetro force opcional, padrão false)
+curl -X DELETE "http://127.0.0.1:<PORTA>/processes/<PID>?force=true"
+
+# Documentação automática (Swagger) — abrir no navegador
+# http://127.0.0.1:<PORTA>/docs
+```
+
+### 4.2. Acesso ao Nginx e ao Cron
+
+```bash
+# Ler o ficheiro escrito pelo cron dentro do Pod do Nginx
 kubectl exec -it deploy/nginx-deployment -n daemon-lab -- cat /usr/share/nginx/html/cron.txt
 
 # Confirmar que o cron está a correr e a gerar logs
@@ -176,20 +220,23 @@ kubectl get pods -n daemon-lab -w
 # (Ctrl+C para parar)
 ```
 
-**Self-healing nos outros serviços** (o professor pode pedir):
+**Self-healing por label nos três serviços:**
 
 ```bash
 # Confirmar os labels reais antes (evita "No resources found")
 kubectl get pods -n daemon-lab --show-labels
 
-# Matar o pod do Nginx pelo label (ajuste o label se necessário)
+# Matar o pod da API (label definido nas interfaces: app: process-api)
+kubectl delete pod -l app=process-api -n daemon-lab
+
+# Matar o pod do Nginx (label definido nas interfaces: app: nginx)
 kubectl delete pod -l app=nginx -n daemon-lab
 
-# Matar o pod do Cron pelo label (ajuste o label se necessário)
+# Matar o pod do Cron (label definido nas interfaces: app: cron)
 kubectl delete pod -l app=cron -n daemon-lab
 
 # Alternativa robusta: obter o label diretamente do selector do Deployment
-kubectl delete pod -n daemon-lab -l app=$(kubectl get deploy nginx-deployment -n daemon-lab -o jsonpath='{.spec.selector.matchLabels.app}')
+kubectl delete pod -n daemon-lab -l app=$(kubectl get deploy api-deployment -n daemon-lab -o jsonpath='{.spec.selector.matchLabels.app}')
 
 # Observar a recuperação
 kubectl get pods -n daemon-lab -w
@@ -201,8 +248,8 @@ kubectl get pods -n daemon-lab -w
 # 1. Confirmar que o metrics-server está a ler a CPU
 kubectl top pods -n daemon-lab
 
-# 2. Num terminal, gerar carga na API (troque <PORTA_DO_TUNEL>)
-while true; do curl -s http://127.0.0.1:<PORTA_DO_TUNEL>/processes > /dev/null; done
+# 2. Num terminal, gerar carga na API (troque <PORTA>)
+while true; do curl -s http://127.0.0.1:<PORTA>/processes > /dev/null; done
 
 # 3. Noutro terminal, assistir o HPA a criar réplicas
 kubectl get hpa -n daemon-lab -w
@@ -212,6 +259,16 @@ kubectl get pods -n daemon-lab -w
 ```
 
 Para parar a carga: `Ctrl+C` no terminal do `while`.
+
+**Plano B** (se o `while` não gerar carga suficiente para o HPA reagir):
+
+```bash
+kubectl run stress --image=busybox -n daemon-lab --restart=Never -- \
+  sh -c "while true; do wget -q -O- http://api-service:8000/processes; done"
+kubectl get hpa -n daemon-lab -w
+# Limpar depois
+kubectl delete pod stress -n daemon-lab
+```
 
 ---
 
@@ -264,7 +321,7 @@ kubectl patch hpa api-hpa -n daemon-lab -p '{"spec":{"minReplicas":4}}'
 # Verificar
 kubectl get hpa -n daemon-lab
 
-# Reverter (assumindo minReplicas=2 no projeto)
+# Reverter (assumindo minReplicas=2 no projeto — confirmar na secção 0.1)
 kubectl patch hpa api-hpa -n daemon-lab -p '{"spec":{"minReplicas":2}}'
 ```
 
@@ -298,7 +355,7 @@ kubectl set env deployment/api-deployment MINHA_VAR- -n daemon-lab
 
 ### 6.5. Trocar a imagem e reverter (rolling update / rollback)
 
-Requer a imagem `process-api:v2` criada no passo 2.3.
+Requer a imagem `process-api:v2` criada no passo 2.3. O nome do container (`api` abaixo) deve ser confirmado na secção 0.1.
 
 ```bash
 # Aplicar nova imagem
@@ -356,7 +413,7 @@ kubectl top pods -n daemon-lab
 ### 6.9. Reset final das modificações ao vivo
 
 ```bash
-# HPA: repor valores originais
+# HPA: repor valores originais (confirmar em 0.1 se não forem 2 e 50%)
 kubectl patch hpa api-hpa -n daemon-lab -p '{"spec":{"minReplicas":2}}'
 kubectl patch hpa api-hpa -n daemon-lab --type=json \
   -p='[{"op": "replace", "path": "/spec/metrics/0/resource/target/averageUtilization", "value": 50}]'
@@ -372,13 +429,20 @@ kubectl rollout undo deployment/api-deployment -n daemon-lab
 
 ## 7. Diagnóstico (se der erro)
 
-### 7.1. Pod travado em Pending, ImagePullBackOff ou CrashLoopBackOff
+### 7.1. Pod travado em Pending, ImagePullBackOff, ErrImageNeverPull ou CrashLoopBackOff
 
 ```bash
 kubectl describe pod <nome-do-pod> -n daemon-lab
 kubectl logs <nome-do-pod> -n daemon-lab
 kubectl logs <nome-do-pod> -n daemon-lab --previous   # logs do crash anterior
 ```
+
+> **`ErrImageNeverPull`:** a imagem não está carregada no Minikube e o `imagePullPolicy: Never` impede o pull. Corrija com:
+>
+> ```bash
+> minikube image load <nome-da-imagem>:latest
+> kubectl rollout restart deployment/<nome-do-deployment> -n daemon-lab
+> ```
 
 ### 7.2. API a devolver erro 500
 
@@ -430,36 +494,3 @@ Se quiser apenas **parar** o cluster sem o apagar:
 ```bash
 minikube stop
 ```
-
----
-
-## Checklist rápido para a apresentação
-
-| Passo | Comando-chave | Estado |
-|---|---|---|
-| Ambiente OK | `minikube status` | [ ] |
-| Imagens carregadas | `docker images` | [ ] |
-| Imagem v2 criada | `docker tag ... process-api:v2` | [ ] |
-| Deploy aplicado | `kubectl get all -n daemon-lab` | [ ] |
-| HPA funcional | `kubectl get hpa -n daemon-lab` | [ ] |
-| API responde | `curl .../processes` | [ ] |
-| Cron a escrever | `kubectl logs deploy/cron-deployment` | [ ] |
-| Labels confirmados | `kubectl get pods --show-labels` | [ ] |
-| Self-healing demo | `kubectl delete pod ...` | [ ] |
-| HPA demo | `while true; do curl ...` | [ ] |
-| Modificações | secção 6 | [ ] |
-| Reset final | secção 8 | [ ] |
-```
-
-**Alterações aplicadas nesta versão (vs. anterior):**
-
-1. **2.3** — criação da imagem `process-api:v2` para o demo de rollback da 6.5.
-2. **3** — `kubectl get pods --show-labels` para confirmar os labels reais.
-3. **5.1** — confirmação de labels + versão robusta com `jsonpath` do selector.
-4. **6.1** — aviso e variante `autoscaling/v1` vs `v2` do patch do HPA.
-5. **6.7** — ConfigMap passa a ser efetivamente montado via `kubectl set env --from` e com revert.
-6. **Secção 1** — nota sobre `imagePullPolicy` + `rollout restart` para reconstruções.
-7. **Checklist** — acrescentadas linhas para imagem `v2` e confirmação de labels.
-8. **Sem emojis** em todo o documento.
-
-Está 100%.
