@@ -1,7 +1,7 @@
-# Guia de Comandos Rápidos — Apresentação A3 (Tema 1)
+# Guia de Comandos — Apresentação A3 (Tema 1)
 
-> [!IMPORTANT]
-> **Pré-requisitos:** Docker Desktop aberto e WSL2/Ubuntu configurado. O terminal deve estar na raiz do projeto.
+
+**Pré-requisitos:** Docker Desktop aberto e WSL2/Ubuntu configurado. O terminal deve estar na raiz do projeto (`A3-Euclerio` ou `projeto-a3`).
 
 ---
 
@@ -58,7 +58,7 @@ kubectl get hpa -n daemon-lab
 
 ---
 
-## 4. Acesso (Túneis no Navegador)
+## 4. Acesso via Navegador e Terminal
 
 Para acessar a API e o Nginx no navegador do Windows:
 
@@ -69,8 +69,16 @@ minikube service api-service -n daemon-lab
 # Abrir o Nginx (Deixe outro terminal aberto)
 minikube service nginx-service -n daemon-lab
 ```
-> [!TIP]
-> O comando vai gerar uma URL com uma porta aleatória (ex: `http://127.0.0.1:45153`). No navegador, adicione `/docs` para o Swagger ou `/processes` para ver o JSON.
+
+**Teste Rápido no Terminal (sem navegador):**
+Substitua `<PORTA_DO_TUNEL>` pela porta gerada no comando acima (ex: 45153).
+```bash
+# Listar processos (teste do hostPID)
+curl http://127.0.0.1:<PORTA_DO_TUNEL>/processes
+
+# Ler o arquivo do cron dentro do Pod do Nginx
+kubectl exec -it <nome-do-pod-nginx> -n daemon-lab -- cat /usr/share/nginx/html/cron.txt
+```
 
 ---
 
@@ -97,10 +105,13 @@ kubectl get pods -n daemon-lab -w
 minikube addons enable metrics-server
 kubectl apply -f k8s/hpa.yaml
 
-# 2. Em outro terminal, gere carga na API (Troque <PORTA_DO_TUNEL> pelo número do passo 4)
+# 2. Verificar se o metrics-server está lendo a CPU
+kubectl top pods -n daemon-lab
+
+# 3. Em outro terminal, gere carga na API (Troque <PORTA_DO_TUNEL> pelo número do passo 4)
 while true; do curl -s http://127.0.0.1:<PORTA_DO_TUNEL>/processes > /dev/null; done
 
-# 3. Em outro terminal, assista o HPA criar réplicas
+# 4. Em outro terminal, assista o HPA criar réplicas
 kubectl get hpa -n daemon-lab -w
 ```
 
@@ -119,8 +130,7 @@ kubectl patch hpa api-hpa -n daemon-lab --type=json -p='[{"op": "replace", "path
 ```bash
 kubectl scale deployment api-deployment --replicas=4 -n daemon-lab
 ```
-> [!WARNING]
-> O HPA vai brigar com você se a CPU estiver baixa. Para que as réplicas se mantenham, altere o `minReplicas` do HPA.
+*Atenção: O HPA vai brigar com você se a CPU estiver baixa. Para que as réplicas se mantenham, altere o `minReplicas` do HPA no comando abaixo.*
 
 ### Impedir o HPA de derrubar as réplicas manuais
 ```bash
