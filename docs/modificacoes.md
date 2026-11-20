@@ -1,13 +1,5 @@
 # Modificações
 
-> **Como usar este guia:** cada secção tem **Conceito → Aplicar → Verificar → Reverter → O que dizer**. Execute tudo no terminal do **Ubuntu/WSL**, na raiz do repositório. Os nomes de imagens, namespace, portas, labels e endpoints seguem `docs/interfaces.md`.
->
-> **Regra de ouro:** nada aqui deve exigir download durante a apresentação. As imagens do projeto já estão no Minikube e o `metrics-server` deve estar ativo antes da demo.
->
-> **Reverter YAML:** se editou ficheiros de `k8s/`, faça `git restore k8s/` antes de reaplicar. `kubectl rollout undo` reverte o Deployment no cluster, mas não o ficheiro local.
->
-> **Leitura rápida:** cada secção começa com **Muda / Não muda**. `minReplicas` mexe só no **piso**; `maxReplicas` só no **teto**; `averageUtilization` só no **alvo de CPU**; `set env`, `set image` e `set resources` mexem na **API**; `scale nginx` mexe só no **Nginx**; `patch svc` mexe só na **exposição**.
-
 ---
 
 ## Parte 1 — Modificações apenas com terminal (sem editar YAML)
